@@ -258,11 +258,11 @@ If you have a font in your Font Book that doesn't appear on the list, it won't j
 
 <img src="Screenshots/Xcode add font - 1 Target info.png" alt="Xcode add font - 1 Target info" style="width:100%;" />
 
-![Xcode add font - 2 Fonts provided by application](Screenshots/Xcode add font - 2 Fonts provided by application.png)
+<img src="Screenshots/Xcode add font - 2 Fonts provided by application.png" alt="Xcode add font - 2 Fonts provided by application" />
 
-![Xcode add font - 3 Fonts provided by application](Screenshots/Xcode add font - 3 Fonts provided by application.png)
+<img src="Screenshots/Xcode add font - 3 Fonts provided by application.png" alt="Xcode add font - 3 Fonts provided by application" />
 
-![Xcode add font - 4 Add font name](Screenshots/Xcode add font - 4 Add font name.png)
+<img src="Screenshots/Xcode add font - 4 Add font name.png" alt="Xcode add font - 4 Add font name" />
 
 ## Centering a node inside another one
 
