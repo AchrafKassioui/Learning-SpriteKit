@@ -1056,4 +1056,4 @@ class SpriteKitScene: SKScene {
 
 ---
 
-This file started on 7 July 2023 as a collection of ready-to-use boilerplates called "SpriteKit Cheatsheet". In March 2024, it became a list of timestamped notes about topics related to SpriteKit.
+This file started on 7 July 2023 as a collection of ready-to-use boilerplates called "SpriteKit Cheatsheet". In March 2024, it became a list of timestamped notes covering various SpriteKit-related topics.
