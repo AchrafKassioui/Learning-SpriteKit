@@ -1,7 +1,5 @@
 # SpriteKit Cheatsheet
 
-This is a collection of ready-to-use boilerplates for Apple SpriteKit. Started on 7 July 2023.
-
 ## Sprite Nodes
 
 *15 March 2024*
@@ -1027,8 +1025,6 @@ class SpriteKitScene: SKScene {
 }
 ```
 
-
-
 ## Links & Resources
 
 - 🎬 [How to use SKLightNodes in Swift](https://www.youtube.com/watch?v=SW2G0bQ2iUo), *accessed 13 March 2024*
@@ -1048,7 +1044,8 @@ class SpriteKitScene: SKScene {
 - SpriteKit + SwiftUI: https://www.youtube.com/watch?v=yR15IqAjvC4
 - https://github.com/kodecocodes/SKTUtils
 - SwiftUI + SpriteKit: https://youtube.com/watch?v=nduPV7-3NtM&t=399
+- 🔈 [Building 3D Apps with SceneKit](https://www.mergeconflict.fm/184), Merge Conflict podcast
 
-## SpriteKit related podcasts
+---
 
-- Merge conflict
+This file started on 7 July 2023 as a collection of ready-to-use boilerplates called "SpriteKit Cheatsheet". In March 2024, it became a list of timestamped notes about topics related to SpriteKit.
