@@ -256,13 +256,13 @@ Family: Zapfino Font names: ["Zapfino"]
 
 If you have a font in your Font Book that doesn't appear on the list, it won't just work with SpriteKit. You have to explicitly add it to Xcode. Apple [has a page](https://developer.apple.com/documentation/uikit/text_display_and_fonts/adding_a_custom_font_to_your_app#) on how to do that. To clarify further, here are screenshots made with Xcode 15.4. Before making these modifications to the info tab of your project target, make sure to add the font to Xcode. You have to add the font **as a file**, **not as an image** inside Assets.
 
-<img src="../Images/Xcode add font - 1 Target info.png" alt="Xcode add font - 1 Target info" style="zoom:50%;" />
+<img src="Screenshots/Xcode add font - 1 Target info.png" alt="Xcode add font - 1 Target info" style="width:100%;" />
 
-![Xcode add font - 2 Fonts provided by application](../Images/Xcode add font - 2 Fonts provided by application.png)
+![Xcode add font - 2 Fonts provided by application](Screenshots/Xcode add font - 2 Fonts provided by application.png)
 
-![Xcode add font - 3 Fonts provided by application](../Images/Xcode add font - 3 Fonts provided by application.png)
+![Xcode add font - 3 Fonts provided by application](Screenshots/Xcode add font - 3 Fonts provided by application.png)
 
-![Xcode add font - 4 Add font name](../Images/Xcode add font - 4 Add font name.png)
+![Xcode add font - 4 Add font name](Screenshots/Xcode add font - 4 Add font name.png)
 
 ## Centering a node inside another one
 
