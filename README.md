@@ -495,6 +495,10 @@ Trivia: on iPhone, it seems that the maximum supported amount of simultaneous to
 
 ## Setup with SwiftUI
 
+*Updated 16 March 2024*
+
+Minimal boilerplate code to display a SpriteKit scene and preview it inside Xcode 15+ using SwiftUI:
+
 ```swift
 import SwiftUI
 import SpriteKit
@@ -502,43 +506,18 @@ import SpriteKit
 // SwiftUI
 struct ContentView: View {
     var myScene = MyScene()
+    
     var body: some View {
         SpriteView(scene: myScene)
     }
+}
+
+#Preview {
+    ContentView()
 }
 
 // SpriteKit
 class MyScene: SKScene {
-    
-}
-```
-
-If you need to bind data and methods between SwiftUI and SpriteKit, you can use the Observation framework (iOS 17+). Observation is set up by importing `Observation`, wrapping the instance of the SpriteKit scene with `@State`, and adding the `@Observable` macro before my SpriteKit class declaration:
-
-```swift
-import SwiftUI
-import SpriteKit
-import Observation
-
-// SwiftUI
-struct SpriteKitSwiftUI: View {
-    @State var myScene = MyScene()
-    var body: some View {
-        SpriteView(scene: myScene)
-        Button(action: {
-            myScene.doSomething()
-        }, label: {
-            Text("Toggle")
-        })
-    }
-}
-
-// SpriteKit
-@Observable class MyScene: SKScene {
-    
-    func doSomething() {
-        
-    }
     
 }
 ```
