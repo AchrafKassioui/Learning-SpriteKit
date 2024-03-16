@@ -4,6 +4,9 @@
 
 *15 March 2024*
 
+Write about:
+
+- anchorPoint
 - SKTextureFilteringMode
 - usesMipmaps
 
