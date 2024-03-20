@@ -1,4 +1,126 @@
-# SpriteKit Cheatsheet
+# Learning SpriteKit
+
+## Camera and scene anchor point
+
+*19 March 2024*
+
+The scene anchor point is a convenience property that positions the origin of the scene relative to the view. By default, the scene's anchor point is (x: 0, y: 0). That puts the origin of the scene at the bottom left corner of the view. 
+
+If you set the anchor point of the scene to (x: 0.5, y: 0.5), the origin of the scene will be located at the center point of the view. This way, when you create a node and add it to the scene, its position will be calculated relative to the center of the view, because the node is positioned relative to the origin of its parent, the scene, and the origin of the scene is at the center of the view. The scene's anchor point is a convenient way to start up your setup depending on your needs.
+
+However, if you add a camera to the scene, the scene's origin will be positioned at the center of the camera view, regardless of the scene's anchor point—unless you reposition the camera, that is. So when the scene has a camera, the anchor point is ignored.
+
+## Apple documentation errors
+
+*19 March 2024*
+
+The official documentation of SpriteKit is certainly lacking. Some of it is actually false. Here are examples:
+
+### `lineLength`
+
+[Apple says](https://developer.apple.com/documentation/spritekit/skshapenode/1520398-linelength) that we can set values to that property. But in practice, this is a get only property. We can not use to animate the creation of a shape node.
+
+## Core Graphics and SpriteKit
+
+*18 March 2024*
+
+One of the first things I wanted to do in SpriteKit is customize the background. I wanted a background that looks like a grid. How could I do that? I could create an image with Pixelmator or Figma and import it in SpriteKit. But I needed to iterate quickly on the look of the grid, and generating large repetitive patterns is not that trivial with drawing software.
+
+Suppose you want to generate a grid to display as your background in SpriteKit, how would you do it programmatically You can use Core Graphics:
+
+```swift
+func generateGridTexture(cellSize: CGFloat, rows: Int, cols: Int) -> SKTexture? {
+    /// Add 1 to the height and width to ensure the borders are within the sprite
+    let size = CGSize(width: CGFloat(cols) * cellSize + 1, height: CGFloat(rows) * cellSize + 1)
+    
+    let renderer = UIGraphicsImageRenderer(size: size)
+    let image = renderer.image { ctx in
+        
+        let bezierPath = UIBezierPath()
+        let offset: CGFloat = 0.5
+                                
+        /// vertical lines
+        for i in 0...cols {
+            let x = CGFloat(i) * cellSize + offset
+            bezierPath.move(to: CGPoint(x: x, y: 0))
+            bezierPath.addLine(to: CGPoint(x: x, y: size.height))
+        }
+        /// horizontal lines
+        for i in 0...rows {
+            let y = CGFloat(i) * cellSize + offset
+            bezierPath.move(to: CGPoint(x: 0, y: y))
+            bezierPath.addLine(to: CGPoint(x: size.width, y: y))
+        }
+        
+        /// stroke style
+        SKColor(white: 0, alpha: 1).setStroke()
+        bezierPath.lineWidth = 1
+        
+        /// draw
+        bezierPath.stroke()
+    }
+    
+    /// return a texture that SpriteKit can use
+    return SKTexture(image: image)
+}
+```
+
+You can then use that function to make a `SKSpriteNode`:
+
+```swift
+if let gridTexture = generateGridTexture(cellSize: 60, rows: 20, cols: 20) {
+    let gridbackground = SKSpriteNode(texture: gridTexture)
+    addChild(gridbackground)
+}
+```
+
+<img src="Screenshots/SpriteKit-CoreGraphics-Gid.png" alt="SpriteKit-CoreGraphics-Gid" style="width:25%;" />
+
+Here is another Core Graphics function that generates a checkerboard texture:
+
+```swift
+func generateCheckerboardTexture(cellSize: CGFloat, rows: Int, cols: Int) -> SKTexture? {
+    let size = CGSize(width: CGFloat(cols) * cellSize, height: CGFloat(rows) * cellSize)
+    
+    let renderer = UIGraphicsImageRenderer(size: size)
+    let image = renderer.image { ctx in
+        let context = ctx.cgContext
+        
+        /// Draw checkerboard cells
+        for row in 0..<rows {
+            for col in 0..<cols {
+                /// Determine cell color: black for even sum of indexes, white for odd
+                let isBlackCell = ((row + col) % 2 == 0)
+                context.setFillColor(isBlackCell ? SKColor(white: 0, alpha: 1).cgColor : SKColor(white: 1, alpha: 1).cgColor)
+                
+                /// Calculate cell frame
+                let cellFrame = CGRect(x: CGFloat(col) * cellSize, y: CGFloat(row) * cellSize, width: cellSize, height: cellSize)
+                
+                /// Fill cell
+                context.fill(cellFrame)
+            }
+        }
+    }
+    
+    return SKTexture(image: image)
+}
+```
+
+<img src="Screenshots/SpriteKit-CoreGraphics-Checkerboard.png" alt="SpriteKit-CoreGraphics-Checkerboard" style="width:25%;" />
+
+In both cases, we get a sprite node, i.e. a node that draws a bitmap image. This is recommended in SpriteKit, as `SKSpriteNode` offer the best performance, and SpriteKit is a raster renderer anyway (zooming with a camera won't re-render shapes vector-like).
+
+Mind you that Core Graphics is a framework optimized for quality rather than performance. It is not meant to produce images 60 or 120 times per second.
+
+## Core Image filters in SpriteKit
+
+*17 March 2024*
+
+SpriteKit has built-in methods using Core Image filters for:
+
+- Applying filters to nodes of type `SKEffectNode`. Out of the box, `SKEffectNode.filter` accepts filters that have a single inputImage parameter and produce a single outputImage parameter.
+- Applying filters to scene transitions with `SKTransition`. Out of the box, `SKTransition.init(ciFilter:duration:)` accepts filters that require only two image parameters (inputImage, inputTargetImage) and generate a single image (outputImage).
+- Applying filters to textures of type `SKTexture` to produce a new texture. Out of the box, `SKTexture.applying(CIFilter)` accepts filters that require a single inputImage parameter and produce an outputImage parameter.
 
 ## Sprite Nodes
 
@@ -14,7 +136,7 @@ Write about:
 
 *14 March 2024*
 
-> **TL;DR**: Nodes of type `SKShapeNode` can generate shapes with code, providing the ability to draw and edit shapes dynamically during runtime. SpriteKit's ability to generate accurate physics bodies for shape nodes is more limited than it is with sprite nodes. When rendered, a shape node is rasterized, so when it's drawn in a size other than its native size, some filtering is applied (blurring or aliasing).
+**TL;DR**: Nodes of type `SKShapeNode` can generate shapes with code, providing the ability to draw and edit shapes dynamically during runtime. SpriteKit's ability to generate accurate physics bodies for shape nodes is more limited than it is with sprite nodes. When rendered, a shape node is rasterized, so when it's drawn in a size other than its native size, some filtering is applied (blurring or aliasing).
 
 Nodes of type `SKShapeNode` are generated procedurally. Their shape, color fill, and border style are defined with code. By default, a shape is transparent (it has no fill color) and has a one-point thick white border.
 
@@ -479,6 +601,48 @@ override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 }
 ```
 
+*Update 20 March 2024*
+
+```swift
+var touchLabels = [UITouch: SKLabelNode]()
+
+override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    for touch in touches {
+        let touchLocation = touch.location(in: self)
+
+        let label = SKLabelNode(fontNamed: "Menlo-Bold")
+        label.fontSize = 32
+        label.zPosition = 1
+        label.text = pointToString(touchLocation)
+        label.position = CGPoint(x: touchLocation.x, y: touchLocation.y + 60)
+        addChild(label)
+        touchLabels[touch] = label
+    }
+}
+
+override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    for touch in touches {
+        guard let label = touchLabels[touch] else { continue }
+        let touchLocation = touch.location(in: self)
+        label.position = CGPoint(x: touchLocation.x, y: touchLocation.y + 60)
+        label.text = pointToString(touchLocation)
+    }
+}
+
+override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+    for touch in touches {
+        touchLabels[touch]?.removeFromParent()
+        touchLabels[touch] = nil
+    }
+}
+
+override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+    touchesEnded(touches, with: event)
+}
+```
+
+
+
 ## Multi touch
 
 *5 March 2024*
@@ -491,7 +655,37 @@ override func didMove(to view: SKView) {
 }
 ```
 
-Trivia: on iPhone, it seems that the maximum supported amount of simultaneous touch points is 5.
+Trivia: on iPhone, it seems that the maximum supported amount of simultaneous touch points is 5. Beyond 5 touches, all UITouch objects are canceled.
+
+*Update 20 march 2024*: multitouch is disabled by default on all UIKit views, not just SKView. See [Apple documentation](https://developer.apple.com/documentation/uikit/touches_presses_and_gestures/handling_touches_in_your_view):
+
+> In its default configuration, a view receives only the first UITouch object associated with an event, even if more than one finger is touching the view. To receive the additional touches, you must set the view’s isMultipleTouchEnabled property to true.
+
+## SpriteKit text blurriness
+
+*5 December 2023*
+
+SpriteKit nodes of type `SKLabelNode`, aka text, get blurry when the camera is zoomed in. See https://stackoverflow.com/a/72286447/420176
+
+One hack around it is to internally multiply the font size by a scale factor, then scale the node down by the same factor, to get a better rendering when zoomed in.
+
+```Swift
+let myText = SKLabelNode()
+let textScaleFactor: CGFloat = 5.0
+myText.fontSize = 28 * textScaleFactor
+myText.name = "myText"
+myText.text = "Hello"
+myText.fontName = "Impact"
+myText.xScale = 1 / textScaleFactor
+myText.yScale = 1 / textScaleFactor
+addChild(myText)
+```
+
+Further testing is required to see how the scaling may affect other behaviors such as physics simulations.
+
+Update: while adding many emojis to the same `SKLabelNode`, the app crashed with an error about Metal's maximum texture size. I believe that given the internal multi-sampling introduced above, and emojis being images, having many of them in the same SpriteKit node eventually exceeds the rendering engine constraints. `SKLabelNode` text length must be limited.
+
+https://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_sampling_/_full-scene_anti-aliasing
 
 ## Setup with SwiftUI
 
@@ -1017,6 +1211,10 @@ class SpriteKitScene: SKScene {
 
 ## Links & Resources
 
+- 🔎 [SpriteKit repositories](https://github.com/topics/spritekit). Search GitHub with tag "spritekit"
+- 📝 [SpriteKit From Scratch](https://code.tutsplus.com/series/spritekit-from-scratch--cms-1018), envato tut+
+- ⚙️ [Xcode Asset Catalog Generator](https://github.com/artstorm/xcode-asset-catalog-generator), bitbebop.com
+- 📝 [Good blog posts on SpriteKit and GameplayKit](https://blog.bitbebop.com/tags/spritekit/), bitbebop.com
 - 🎬 [How to use SKLightNodes in Swift](https://www.youtube.com/watch?v=SW2G0bQ2iUo), *accessed 13 March 2024*
 - 📝 [Outline text in SpriteKit](http://endpoint.nl/blog/outline-text-in-spritekit)
 - 📝 [The history of Cocos2d in a glimpse](https://retro.moe/2017/04/16/cocos2d-in-a-glimpse/), 2017. *accessed 8 March 2024*
