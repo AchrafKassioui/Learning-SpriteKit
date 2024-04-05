@@ -88,7 +88,7 @@ However, if you add a camera to the scene, the scene's origin will be positioned
 
 *19 March 2024*
 
-The official documentation of SpriteKit is certainly lacking. Some of it is actually false. Here are examples:
+The official documentation of SpriteKit is a must-read but it is certainly lacking. Some of it is actually false. Here are examples:
 
 - `lineLength`: [Apple says](https://developer.apple.com/documentation/spritekit/skshapenode/1520398-linelength) that we can set values to that property. But in practice, this is a get only property. We can not use it to animate the drawing of a path.
 
