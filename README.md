@@ -98,7 +98,7 @@ The official documentation of SpriteKit is a must-read but it is certainly lacki
 
 One of the first things I wanted to do in SpriteKit is customize the background. I wanted a background that looks like a grid. How could I do that? I could create an image with Pixelmator or Figma and import it in SpriteKit. But I needed to iterate quickly on the look of the grid, and generating large repetitive patterns is not that trivial with drawing software.
 
-Suppose you want to generate a grid to display as your background in SpriteKit, how would you do it programmatically You can use Core Graphics:
+Suppose you want to generate a grid to display as your background in SpriteKit, how would you do it programmatically? You can use Core Graphics:
 
 ```swift
 func generateGridTexture(cellSize: CGFloat, rows: Int, cols: Int) -> SKTexture? {
