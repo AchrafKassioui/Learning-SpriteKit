@@ -840,18 +840,17 @@ SpriteView(
 
 Most tutorials and resources available on SpriteKit will use a specific size for the scene, and pass it to the initializer method. What size should you use in your own SpriteKit project?
 
-Scene size in SpriteKit is a convenience property. In reality, SpriteKit scenes are infinitely large. Users specify a scene size because 1) they have fixed size art that has to fit in specific places within a fixed screen ratio, and 2) they use the scene size to place objects relative to these device-derived bounds.
+Scene size is the size of the *visible* portion of it. The scene itself is infinite. Below are references to better understand the relationship between the scene (infinite) and its presenter (the view).
 
 *28 March 2024*
 
-> A Scene’s Size Defines Its Visible Area.
-> When a scene is first initialized, its size property is configured by the designated initializer. The size of the scene specifies the size of the visible portion of the scene in points. This is only used to specify the visible portion of the scene. Nodes in the tree can be positioned outside of this area; those nodes are still processed by the scene, but are ignored by the renderer.
+> A scene’s size defines its visible area. When a scene is first initialized, its size property is configured by the designated initializer. The size of the scene specifies the size of the visible portion of the scene in points. This is only used to specify the visible portion of the scene. Nodes in the tree can be positioned outside of this area; those nodes are still processed by the scene, but are ignored by the renderer.
 
-[SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Nodes/Nodes.html)
+Source: [SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Nodes/Nodes.html).
 
 *21 January 2024*
 
-How should I size my SpriteKit scene? How does scene size affect performance? Will my nodes' position be constrained by the scene size? If a physics body falls under gravity, will it continue to fall indefinitely?
+How should you size my SpriteKit scene? How does scene size affect performance? Will my nodes' position be constrained by the scene size? If a physics body falls under gravity, will it continue to fall indefinitely?
 
 If we command-click on `SKScene` in a SpriteKit code, we can bring up the header information for the class:
 
