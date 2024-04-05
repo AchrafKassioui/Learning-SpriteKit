@@ -850,9 +850,7 @@ Source: [SpriteKit Programming Guide](https://developer.apple.com/library/archiv
 
 *21 January 2024*
 
-
-
-If we command-click on `SKScene` in a SpriteKit code, we can bring up the header information for the class:
+If we command-click on the type `SKScene` in Xcode, we can bring up the header information for the class:
 
 > A scene is infinitely large, but it has a viewport that is the frame through which you present the content of the scene. The passed in size defines the size of this viewport that you use to present the scene.
 
