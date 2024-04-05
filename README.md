@@ -1,5 +1,79 @@
 # Learning SpriteKit
 
+## Texture filtering
+
+*27 March 2024*
+
+Texture filtering is a form of anti-aliasing. With sprite nodes, i.e. nodes that are explicitly made of bitmap data, SpriteKit's renderer provides two texture filtering modes: 
+
+```swift
+mySpriteNode.texture?.filteringMode = .linear // linera filtering, default mode
+mySpriteNode.texture?.filteringMode = .nearest // pixelated mode
+```
+
+<img src="Screenshots/SpriteKit-filteringMode.png" alt="SpriteKit-filteringMode" style="width:50%;" />
+
+On shape nodes, that is, nodes that are drawn programmatically with `SKShapeNode` methods, SpriteKit provides an anti-aliasing switch that probably inherits from Core Graphics:
+
+```swift
+/// stroke edges and caps is smoothed (antialiased) when drawn
+/// default mode = true
+myShapeNode.isAntialiased = true
+```
+
+It's interesting to pay attention at the anti-aliasing mode used in graphics authoring tools. Usually, when you zoom out in programs like Figma or Photoshop, the rendering is smoothed, so you can still see points that are less than 1 pixel wide. If it weren't smoothed, anything less than a full pixel would disappear if you zoom out beyond a threshold.
+
+However, when you zoom in, these programs tends to disable smoothing, and they show you a representation of the pixels grid. This helps evaluate bitmap data as it is defined at the pixel level.
+
+## Watch out
+
+*26 March 2024*
+
+These are peculiar behaviors I stumbled upon wile working with SpriteKit.
+
+### Core Image filters can change the apparent behavior of a physical body
+
+<video src="Screenshots/SpriteKit-BloomFilter-ON-showPhysics.mov" width="320"></video>
+
+```swift
+let colorWheeltexture = SKTexture(imageNamed: "color-wheel-sprite")
+let colorWheel = SKSpriteNode(texture: colorWheeltexture)
+colorWheel.physicsBody = SKPhysicsBody(texture: colorWheeltexture, size: colorWheeltexture.size())
+colorWheel.physicsBody?.affectedByGravity = false
+
+var bloomFilter = CIFilter.bloom()
+
+let effectNode = SKEffectNode()
+effectNode.filter = bloomFilter
+bloomFilter.intensity = 1
+bloomFilter.radius = 10
+effectNode.addChild(colorWheel)
+
+addChild(effectNode)
+
+// ..
+
+colorWheel.physicsBody?.angularVelocity += 5
+```
+
+Spinning a perfect circle that has a bloom filter applied to it can make the circle rock back and forth. It appears as if the sprite's center of rotation has changed. I experienced similar effects with other filters such as gaussian blur.
+
+### Physics bodies can not be automatically generated from textures with holes in them
+
+Examples: SKLabelNode with non contiguous characters, SKTexture with non contiguous opaque regions.
+
+### Sprite node anchor point and physics body
+
+Changing the anchor point of a sprite node does not reposition the physics body to follow the visual texture.
+
+## Physics vs manual 
+
+*25 March 2024*
+
+SpriteKit physics engine changes the position and zRotation of nodes over time. The rate and direction at which it changes them is what is stored in the velocity and angular velocity properties. By combing that information with other physical informations, such as friction and rules of change, the physics engine calculates new positons and rotations and apply them to objects.
+
+If you write code that changes the position or rotation of objects across time, for example through an SKAction or inside the update function, you are essentially writing your own physics engine, with your own rules.
+
 ## Camera and scene anchor point
 
 *19 March 2024*
@@ -173,7 +247,17 @@ In SpriteKit, you can draw shapes using:
 - Path, with straight lines from a collection of points
 - Path, with curved lines from a collection of points, where pairs of point are joined with a quadratic curve
 
-A note about `SKShapeNode` rendering: even though shapes are procedural, like a vector shape would be, SpriteKit's renderer itself rasterize the shape during runtime. In fact, every node that draws is rasterized by SpriteKit's renderer, visually behaving like a sprite. Therefore, if you zoom in on shape node, if it its counters do not snap to the pixel grid, it will be either blurred or aliased, depending on the node's filtering mode. 
+A note about `SKShapeNode` rendering: even though shapes are procedural, like a vector shape would be, SpriteKit's renderer itself rasterize the shape during runtime. In fact, every node that draws is rasterized by SpriteKit's renderer, visually behaving like a sprite. Therefore, if you zoom in on shape node, if it its counters do not snap to the pixel grid, it will be either blurred or aliased, depending on the node's filtering mode.
+
+Here are other useful code samples:
+
+```swift
+/// change the radius of an existing round shape
+let myCircle = SKShapeNode(circleOfRadius: 10)
+let newRadius: CGFloat = 10
+let newPath = CGPath(ellipseIn: CGRect(x: -newRadius, y: -newRadius, width: newRadius*2, height: newRadius*2), transform: nil)
+myCircle.path = newPath
+```
 
 ## Selection and retrieval
 
@@ -275,7 +359,7 @@ label.verticalAlignmentMode = .center
 addChild(label)
 ```
 
-## Adding a font
+## Fonts
 
 *13 March 2024*
 
@@ -584,6 +668,8 @@ See [Resizing a Sprite in Nine Parts](https://developer.apple.com/documentation/
 
 *5 March 2024*
 
+For single touch handling, here is a basic setup:
+
 ```swift
 override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     // safety precaution to make sure there was a touch event captured
@@ -601,45 +687,64 @@ override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
 *Update 20 March 2024*
 
-```swift
-var touchLabels = [UITouch: SKLabelNode]()
+For multi-touch handling, here is basic setup. Note that for multi-touch, a guard statement to ensure there is actually a touch is not necessary, since 1) we are interested in all touches, and 2) the loop over the touches ensures that we only process existing touch points.
 
+```swift
 override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     for touch in touches {
-        let touchLocation = touch.location(in: self)
-
-        let label = SKLabelNode(fontNamed: "Menlo-Bold")
-        label.fontSize = 32
-        label.zPosition = 1
-        label.text = pointToString(touchLocation)
-        label.position = CGPoint(x: touchLocation.x, y: touchLocation.y + 60)
-        addChild(label)
-        touchLabels[touch] = label
+        // process this particular touch point
     }
 }
 
 override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
     for touch in touches {
-        guard let label = touchLabels[touch] else { continue }
-        let touchLocation = touch.location(in: self)
-        label.position = CGPoint(x: touchLocation.x, y: touchLocation.y + 60)
-        label.text = pointToString(touchLocation)
+        // process this particular touch point
     }
 }
 
 override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
     for touch in touches {
-        touchLabels[touch]?.removeFromParent()
-        touchLabels[touch] = nil
+        // process this particular touch point        
     }
 }
 
 override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-    touchesEnded(touches, with: event)
+    // cleanup the ongoing touch processing
 }
 ```
 
+This how to get the touched nodes:
 
+```swift
+override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+    guard let scene = scene else { return }
+
+    for touch in touches {
+        let touchLocation = touch.location(in: scene)
+        let touchedNodes = scene.nodes(at: touchLocation)
+        for node in touchedNodes {
+            // code for every touched node
+        }
+    }
+}
+```
+
+Constrain a position within a range:
+
+```swift
+override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+    for touch in touches {
+        let touchLocation = touch.location(in: self)
+
+        /// Clamp the values
+        let lowerBound = -100
+        let upperBound = 100
+        let allowedYPosition = max(lowerBound, min(touchLocation.y, upperBound))
+
+        myNode.position.y = allowedYPosition
+    }
+}
+```
 
 ## Multi touch
 
@@ -736,6 +841,13 @@ SpriteView(
 Most tutorials and resources available on SpriteKit will use a specific size for the scene, and pass it to the initializer method. What size should you use in your own SpriteKit project?
 
 Scene size in SpriteKit is a convenience property. In reality, SpriteKit scenes are infinitely large. Users specify a scene size because 1) they have fixed size art that has to fit in specific places within a fixed screen ratio, and 2) they use the scene size to place objects relative to these device-derived bounds.
+
+*28 March 2024*
+
+> A Scene’s Size Defines Its Visible Area.
+> When a scene is first initialized, its size property is configured by the designated initializer. The size of the scene specifies the size of the visible portion of the scene in points. This is only used to specify the visible portion of the scene. Nodes in the tree can be positioned outside of this area; those nodes are still processed by the scene, but are ignored by the renderer.
+
+[SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Nodes/Nodes.html)
 
 *21 January 2024*
 
@@ -1161,11 +1273,13 @@ effectNode.run(repeatAction)
 ```swift
 // Add a physical object to the scene
 func addPhysicalObject() {
-    let physicalBox = SKSpriteNode(color: .red, size: CGSize(width: 50, height: 50))
-    physicalBox.position = CGPoint.zero
-    physicalBox.physicsBody = SKPhysicsBody()
-    physicalBox.physicsBody!.applyForce(CGVector(dx: 0, dy: 100))
-    physicalBox.physicsBody?.applyImpulse(CGVector(dx: 100, dy: 1000))
+    // a size for the square
+    let boxSize = CGSize(width: 50, height: 50)
+    // use the size to create a red sprite
+    let physicalBox = SKSpriteNode(color: .red, size: boxSize)
+    // use the size to create a physics body
+    physicalBox.physicsBody = SKPhysicsBody(rectangleOf: boxSize)
+    
     addChild(physicalBox)
 }
 ```
@@ -1176,39 +1290,30 @@ import SwiftUI
 import SpriteKit
 
 struct transparentSpriteView: View {
-    var myScene = SpriteKitScene(size: CGSize(width: 1000, height: 1000))
+    var myScene = SpriteKitScene()
     
     var body: some View {
-        ZStack {
-            SpriteView(
-                scene: myScene,
-                options: [.allowsTransparency] // Important bit Nº1
-            )
-                .ignoresSafeArea()
-                .background(.blue)
-        }
+        SpriteView(
+            scene: myScene,
+            options: [.allowsTransparency] // Step 1
+        )
+        .background(.blue)
     }
 }
 
-class SpriteKitScene: SKScene {  
-    override init(size: CGSize) {
-        super.init(size: size)
-        self.scaleMode = .resizeFill
-        self.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    
+class SpriteKitScene: SKScene {    
     override func didMove(to view: SKView) {
-        backgroundColor = .clear // Important bit Nº2
+        size = view.bounds.size
+        scaleMode = .resizeFill
+        backgroundColor = .clear // Step 2
     }
 }
 ```
 
 ## Links & Resources
 
+- 📝 [Hanging chains with physics joints](http://www.waveworks.de/howto-make-hanging-chains-sprite-kit-physics-joints/), *accessed 31 March 2024*
+- 📐 [SKPhysicsBody Path Generator](http://insyncapp.net/SKPhysicsBodyPathGenerator.html): an old page that generates a CGPath by manually drawing lines over a sprite on the browser. The generated code is in Objective-C with an old syntax, but still interesting to know.
 - 🔎 [SpriteKit repositories](https://github.com/topics/spritekit). Search GitHub with tag "spritekit"
 - 📝 [SpriteKit From Scratch](https://code.tutsplus.com/series/spritekit-from-scratch--cms-1018), envato tut+
 - ⚙️ [Xcode Asset Catalog Generator](https://github.com/artstorm/xcode-asset-catalog-generator), bitbebop.com
