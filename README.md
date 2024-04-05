@@ -838,9 +838,9 @@ SpriteView(
 
 ## Scene size
 
-Most tutorials and resources available on SpriteKit will use a specific size for the scene, and pass it to the initializer method. What size should you use in your own SpriteKit project?
+Most tutorials and resources available on SpriteKit will use a specific size for the scene, and pass it to the initializer method. How should you size your SpriteKit scene? How does scene size affect performance? Will my nodes' position be constrained by the scene size? If a physics body falls under gravity, will it continue to fall indefinitely?
 
-Scene size is the size of the *visible* portion of it. The scene itself is infinite. Below are references to better understand the relationship between the scene (infinite) and its presenter (the view).
+In reality, scene size is the size of its *visible* portion. The scene itself is infinite. Below are references to better understand the relationship between the scene (infinite) and its presenter (the view, finite).
 
 *28 March 2024*
 
@@ -850,7 +850,7 @@ Source: [SpriteKit Programming Guide](https://developer.apple.com/library/archiv
 
 *21 January 2024*
 
-How should you size my SpriteKit scene? How does scene size affect performance? Will my nodes' position be constrained by the scene size? If a physics body falls under gravity, will it continue to fall indefinitely?
+
 
 If we command-click on `SKScene` in a SpriteKit code, we can bring up the header information for the class:
 
