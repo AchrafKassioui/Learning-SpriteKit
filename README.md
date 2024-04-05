@@ -858,7 +858,7 @@ An older version of the header, [quoted here](https://stackoverflow.com/a/334473
 
 > To display different portions of your scene, move the contents relative to the viewport. One way to do that is to create a SKNode to function as a viewport transformation. That node should have all visible contents parented under it.
 
-That version probably predates the introduction of `SKCameraNode`, since a SpriteKit camera does essentially that. Now regarding the relation between the scene size and the viewport size, we can read this in the same header file:
+That version probably predates the introduction of `SKCameraNode`, since a SpriteKit camera does essentially that. As for the relation between the scene size and the viewport size, we can read this in the same header file:
 
 > fill: Scale the SKScene to fill the entire SKView
 >
