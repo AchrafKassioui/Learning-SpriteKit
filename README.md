@@ -245,6 +245,9 @@ Screen recordings:
 
 <video src="Screenshots/SpriteKit-Filter-Pointillize-Object.mp4" width="310"></video>
 
+https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/ce77b01b-b241-4c4f-9f7e-7d66c9f7dea9
+https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/3eb90542-add2-42b7-bca0-9ea8f9781c6a
+
 *17 March 2024*
 
 SpriteKit has built-in methods using Core Image filters for:
