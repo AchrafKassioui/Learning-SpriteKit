@@ -1,5 +1,47 @@
 # Learning SpriteKit
 
+## To do
+
+- Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
+- Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
+
+## SpriteKit is not siloed
+
+*16 April 2024*
+
+I thoroughly enjoyed watching SpriteKit introduction video in WWDC 2013, session 502. A link to an [HD version of the video can be found here](http://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov?dl=1). Tim Oriol, SpriteKit lead engineer, mentions something in passing that was quite thought provoking to me: that we could use our own physics engine with SpriteKit, instead of SpriteKit built-in engine.
+
+My takeaway is that SpriteKit is rather a toolkit framework meant to work with other frameworks, especially other Apple frameworks. SpriteKit also isn't very opinionated about how to structure and organize your code. It's up to you to design your own logic that uses SpriteKit as one of its components. It seems to me that SpriteKit was not designed to be a siloed environment, the way other game engines usually are.
+
+Another interesting example is a macOS app I tested recently, called [Euler VS Pro](https://www.eulervs.com). Euler Visual Synthesizer uses a SpriteKit view to visualize shapes...in 3D! SpriteKit is used as the renderer, i.e. the end point rasterizer, while the 3D projections are taken care of inside the app's own logic, [using simd vector operations](https://discord.com/channels/1119028615733067808/1119028616844562463/1228520361285648465) on the CPU.
+
+## SpriteKit original team
+
+*9 April 2024*
+
+Below is a list of people from Apple who were involved with the development of SpriteKit.
+
+- **[Tim Oriol](https://www.linkedin.com/in/toriol/)**: "Original architect and engineering lead for SpriteKit, shipped in iOS 7. Responsible for initial proposal, prototyping and research, production architecture and feature implementation, growing the team, and designing the final API surface. [...] Continued to lead and grow the SpriteKit team. Responsible for migrating the rendering system to Metal and new features including animatable mesh warps, camera system, and custom shader support. Designed and implemented the particle effects system to support the fireworks fullscreen message effects (shipped in iOS 10)." [ndr: this is one of the reasons I'm interested in SpriteKit and native frameworks: I want seamless integration with the operating system and the rest of the features that users of that platform are accustomed to.]
+- [Jacques Gasselin de Richebourg](https://www.linkedin.com/in/jacques-gasselin-de-richebourg-3b8924108/)
+
+## View properties
+
+*8 April 2024*
+
+Within your SpriteKit code, you can access some interesting properties of the view containing the SpriteKit scene.
+
+```swift
+override func didMove(to view: SKView) {
+    /// modify the anchor point of the SKView itself
+    view.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+    
+    /// access the Core Animation properties of the layer containing the view
+    view.layer.borderWidth = 5
+    view.layer.cornerRadius = 44
+    view.layer.cornerCurve = .continuous
+    view.layer.borderColor = SKColor.red.cgColor
+```
+
 ## Texture filtering
 
 *27 March 2024*
@@ -13,7 +55,7 @@ mySpriteNode.texture?.filteringMode = .nearest // pixelated mode
 
 <img src="Screenshots/SpriteKit-filteringMode.png" alt="SpriteKit-filteringMode" style="width:50%;" />
 
-On shape nodes, that is, nodes that are drawn programmatically with `SKShapeNode` methods, SpriteKit provides an anti-aliasing switch that probably inherits from Core Graphics:
+For nodes that are drawn programmatically like `SKShapeNode`, SpriteKit provides an anti-aliasing switch that probably inherits from Core Graphics:
 
 ```swift
 /// stroke edges and caps is smoothed (antialiased) when drawn
@@ -21,7 +63,7 @@ On shape nodes, that is, nodes that are drawn programmatically with `SKShapeNode
 myShapeNode.isAntialiased = true
 ```
 
-It's interesting to pay attention at the anti-aliasing mode used in graphics authoring tools. Usually, when you zoom out in programs like Figma or Photoshop, the rendering is smoothed, so you can still see points that are less than 1 pixel wide. If it weren't smoothed, anything less than a full pixel would disappear if you zoom out beyond a threshold.
+In the broader context of graphical authoring tools, it's interesting to pay attention at the anti-aliasing mode they use. Typically, when you zoom out in a program like Figma or Photoshop, the rendering is smoothed out, so you can still see points that are less than 1 pixel wide. If they weren't smoothed out, anything less than a full pixel would disappear when you zoom out beyond 100% zoom.
 
 However, when you zoom in, these programs tends to disable smoothing, and they show you a representation of the pixels grid. This helps evaluate bitmap data as it is defined at the pixel level.
 
@@ -74,6 +116,10 @@ SpriteKit physics engine changes the position and zRotation of nodes over time. 
 
 If you write code that changes the position or rotation of objects across time, for example through an SKAction or inside the update function, you are essentially writing your own physics engine, with your own rules.
 
+*5 April 2024*
+
+Numerically calculating the position of an object, by applying velocity each delta time, is called [explicit Euler](https://web.archive.org/web/20180823005957/https://gafferongames.com/post/integration_basics/).
+
 ## Camera and scene anchor point
 
 *19 March 2024*
@@ -88,7 +134,7 @@ However, if you add a camera to the scene, the scene's origin will be positioned
 
 *19 March 2024*
 
-The official documentation of SpriteKit is a must-read but it is certainly lacking. Some of it is actually false. Here are examples:
+The official documentation of SpriteKit is a must-read but it is unfortunately lacking. Some of it is actually false. Here are examples:
 
 - `lineLength`: [Apple says](https://developer.apple.com/documentation/spritekit/skshapenode/1520398-linelength) that we can set values to that property. But in practice, this is a get only property. We can not use it to animate the drawing of a path.
 
@@ -96,9 +142,9 @@ The official documentation of SpriteKit is a must-read but it is certainly lacki
 
 *18 March 2024*
 
-One of the first things I wanted to do in SpriteKit is customize the background. I wanted a background that looks like a grid. How could I do that? I could create an image with Pixelmator or Figma and import it in SpriteKit. But I needed to iterate quickly on the look of the grid, and generating large repetitive patterns is not that trivial with drawing software.
+One of the first things I wanted to do in SpriteKit is to customize the background. I wanted a background that looks like a grid. How could I do that? I could create an image with Pixelmator or Figma and import it in SpriteKit. But I needed to iterate quickly on the look of the grid, and generating large repetitive patterns is not that trivial with drawing software.
 
-Suppose you want to generate a grid to display as your background in SpriteKit, how would you do it programmatically? You can use Core Graphics:
+Suppose we want to generate a grid to display as a background in SpriteKit, how would we do it programmatically? We can use Core Graphics:
 
 ```swift
 func generateGridTexture(cellSize: CGFloat, rows: Int, cols: Int) -> SKTexture? {
@@ -137,7 +183,7 @@ func generateGridTexture(cellSize: CGFloat, rows: Int, cols: Int) -> SKTexture? 
 }
 ```
 
-You can then use that function to make a `SKSpriteNode`:
+We can then use that function to make a `SKSpriteNode`:
 
 ```swift
 if let gridTexture = generateGridTexture(cellSize: 60, rows: 20, cols: 20) {
@@ -186,6 +232,19 @@ Mind you that Core Graphics is a framework optimized for quality rather than per
 
 ## Core Image filters in SpriteKit
 
+*12 April 2024*
+
+When you apply a Core Image filter in SpriteKit, it's important to understand the difference between a screen-space effect and an object-space or scene-space effect. Filters are always applied through `SKEffectNode`, therefore, the filter's effects will be drawn relative to that node. A node moving inside the effect node will "traverse" the effect applied on the effect node. For example, if you apply a pointillize effect, the dots will "belong" to the effect node, not to the nodes inside it. If you want the dots to "travel" with a moving node, you have to move the effect node itself. At which point, you might as well produce a static texture with Core Image, that you use as an `SKTexture` for a sprite node, which is better for performance.
+
+Screen recordings:
+
+- The first video applies a filter in screen-space: the effect node contains the moving node
+- The second video applies the filter in object-space: the effect node is the moving node
+
+<video src="Screenshots/SpriteKit-Filter-Pointillize-Screen.mp4" width="310"></video>
+
+<video src="Screenshots/SpriteKit-Filter-Pointillize-Object.mp4" width="310"></video>
+
 *17 March 2024*
 
 SpriteKit has built-in methods using Core Image filters for:
@@ -193,16 +252,6 @@ SpriteKit has built-in methods using Core Image filters for:
 - Applying filters to nodes of type `SKEffectNode`. Out of the box, `SKEffectNode.filter` accepts filters that have a single inputImage parameter and produce a single outputImage parameter.
 - Applying filters to scene transitions with `SKTransition`. Out of the box, `SKTransition.init(ciFilter:duration:)` accepts filters that require only two image parameters (inputImage, inputTargetImage) and generate a single image (outputImage).
 - Applying filters to textures of type `SKTexture` to produce a new texture. Out of the box, `SKTexture.applying(CIFilter)` accepts filters that require a single inputImage parameter and produce an outputImage parameter.
-
-## Sprite Nodes
-
-*15 March 2024*
-
-Write about:
-
-- anchorPoint
-- SKTextureFilteringMode
-- usesMipmaps
 
 ## Shape nodes
 
@@ -259,6 +308,18 @@ let newPath = CGPath(ellipseIn: CGRect(x: -newRadius, y: -newRadius, width: newR
 myCircle.path = newPath
 ```
 
+```swift
+/// create a path, then dynamically assign it to a shape
+let path = CGMutablePath()
+path.move(to: CGPoint(x: -10, y: 0))
+path.addLine(to: CGPoint(x: 10, y: 0))
+path.move(to: CGPoint(x: 0, y: 10))
+path.addLine(to: CGPoint(x: 0, y: -10))
+
+let shape = SKShapeNode()
+shape.path = path
+```
+
 ## Selection and retrieval
 
 *14 March 2024*
@@ -278,24 +339,19 @@ enumerateChildNodes(withName: "nodeName") {node, _ in
 	
 }
 
-// same as above, with a different Swifty syntax
+// same as above, with a different syntax
 enumerateChildNodes(withName: "nodeName", using: { node, _ in
 	
 })
 
-// code for every node with the given name
+// same as above, with the added stop parameter
 // Use `stop.pointee = true` or `stop[0] = true` to stop the enumeration
 enumerateChildNodes(withName: "nodeName") {node, stop in
 	
 }
 
-// loop through all the children of the node
-for child in children {
-    
-}
-
 // code for myNode with name "targetName"
-if let myNode = self.childNode(withName: "//targetName") {
+if let myNode = childNode(withName: "//my-node") {
     
 }
 ```
@@ -483,7 +539,7 @@ If you have a font in your Font Book that doesn't appear on the list, it won't j
 
 *12 March 2024*
 
-For any nodes `nodeToCenter` and `referenceNode`, you can center one relative to another with:
+For any two nodes, you can center one relative to another with:
 
 ```swift
 nodeToCenter.position = CGPoint(x: referenceNode.frame.midX, y: referenceNode.frame.midY)
@@ -491,9 +547,11 @@ nodeToCenter.position = CGPoint(x: referenceNode.frame.midX, y: referenceNode.fr
 
 There are special cases where a node will be automatically centered. If your node to center has a parent, and if the parent has a property of `anchorNode`, such as `SKScene` and `SKSpriteNode`, then any child node of those with position ``CGPoint(x: 0, y: 0)` are automatically centered relative to their parent node.
 
-## Visualize the bounding box of a node
+## Visualize the frame of a node
 
 *9 March 2024*
+
+The accumulated frame of a node is the smallest straight rectangle that can contain that node. A convex node has a rectangular frame. A rotated square node has a rectangular frame that has expanded to contain the rotated square.
 
 You can use the `calculateAccumulatedFrame()` method on the node you want to visualize, and draw a `SKShapeNode` around it:
 
@@ -525,9 +583,7 @@ func visualizeFrame(for targetNode: SKNode, in scene: SKScene) {
 }
 ```
 
-You can either call that function one time, or you can call it every frame. Interesting to note: the way you call your function every time impacts how the bounding box will be draw. If your target node is affected by physics, and you call `visualizeFrame` in `update`, then the bounding box will lag behind your moving physical object, because `update` is called before physics are simulated.
-
-A better way to accurately track your moving physical object is to use the `didSimulatePhysics` function of SpriteKit's game loop:
+You can either call that function one time, or you can call it every frame. The way you call your function every time matters. For example, if your target node is affected by physics, and if you call `visualizeFrame` inside the `update` function, then the bounding box will lag behind your moving physical object, because `update` is called *before* physics are calculated. Therefore, you should call you function inside `didSimulatePhysics` instead:
 
 ```swift
 override func update(_ currentTime: TimeInterval) {
@@ -558,11 +614,9 @@ ChatGPT 4, *accessed 7  March 2024*
 
 *6 March 2024*
 
-In SpriteKit, you can get a texture from any node, including a collection of nodes, which you can group under the same `SKNode`.
+In SpriteKit, you can get a texture from any node, which includes its children. For example, you could define a node using `SKShapeNode`, get the texture of that node, and create a `SKSpriteNode` with the texture.
 
-For example, you could define a node using `SKShapeNode`, get the texture of that node, and create a `SKSpriteNode` with the texture.
-
-Similarly, you can get the resulting texture of many nodes at one, 
+I use that feature to create better physics bodies for nodes such as `SKShapeNode`:
 
 ```swift
 if let nodeTexture = view.texture(from: myNode) {
@@ -1233,7 +1287,7 @@ if myNode.frame.contains(touchLocation) {
 
 ---
 
-## Examples
+## Code samples
 
 ```swift
 // Continuously rotate a node
