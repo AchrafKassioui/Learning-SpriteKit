@@ -5,15 +5,31 @@
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
 
-## SpriteKit is not siloed
+## contentMode
+
+*18 April 2024*
+
+I found a little gem for SpriteKit views: you know how SpriteKit stretches and scales the view in an ugly way when you rotate your device? (first video) You can change that behavior using the `contentMode` property of a UIKit view.
+
+By default, `SKView.contentMode` is set to `.scaleToFill`, which produces the stretch and scale look. If we use the `.center` mode instead, we get a far better looking behavior in my view (second video). Ideally, we should set contentMode to `.redraw` to force the view to redraw its content according to the current size, without messing with the proportions. But `.redraw` doesn't seem to work on SKView. 
+
+Using `.center`, the view is rotated while respecting its proportions, as it should. However, just before orientation change, the view is instantly resized (cropped) to fit the target size. I'll investigate further so see if I can animate the resizing using methods such as `viewWillTransition` in UIKit. In any case, the `.center` mode of `view.contentMode` is already much better than the default behavior.
+
+https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/7614cac4-3bb5-4973-93ef-2adac41d2e11
+
+https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/ed6b0dca-abf7-4a09-8e1a-e595acc9012c
+
+## SpriteKit is low level
 
 *16 April 2024*
 
-I thoroughly enjoyed watching SpriteKit introduction video in WWDC 2013, session 502. A link to an [HD version of the video can be found here](http://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov?dl=1). Tim Oriol, SpriteKit lead engineer, mentions something in passing that was quite thought provoking to me: that we could use our own physics engine with SpriteKit, instead of SpriteKit built-in engine.
+I thoroughly enjoyed watching the SpriteKit introduction video from WWDC 2013. A link to an [HD version of the video can be found here](http://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov?dl=1). During the presentation, SpriteKit lead engineer Tim Oriol mentions in passing that one could roll their own physics engine instead of SpriteKit's built-in one.
 
-My takeaway is that SpriteKit is rather a toolkit framework meant to work with other frameworks, especially other Apple frameworks. SpriteKit also isn't very opinionated about how to structure and organize your code. It's up to you to design your own logic that uses SpriteKit as one of its components. It seems to me that SpriteKit was not designed to be a siloed environment, the way other game engines usually are.
+That made me think: SpriteKit was not designed to be a siloed environment that provides everything. Rather, it is a toolkit meant to work with other frameworks, whether from Apple or custom ones. 
 
-Another interesting example is a macOS app I tested recently, called [Euler VS Pro](https://www.eulervs.com). Euler Visual Synthesizer uses a SpriteKit view to visualize shapes...in 3D! SpriteKit is used as the renderer, i.e. the end point rasterizer, while the 3D projections are taken care of inside the app's own logic, [using simd vector operations](https://discord.com/channels/1119028615733067808/1119028616844562463/1228520361285648465) on the CPU.
+When working with SpriteKit, you'll quickly realize that SpriteKit doesn't tell you how to organize your code or how to structure your logic. It's up to you to choose and implement your own patterns. You could decide to use SpriteKit for only parts of your application.
+
+An interesting example I tested recently is a macOS app called [Euler VS Pro](https://www.eulervs.com). Euler Visual Synthesizer uses SpriteKit to visualize shapes...in 3D! The app itself is made with AppKit, SpriteKit is used as the renderer, and the 3D projections are taken care of inside the app's own logic, [using simd vector operations](https://discord.com/channels/1119028615733067808/1119028616844562463/1228520361285648465) on the CPU.
 
 ## SpriteKit original team
 
