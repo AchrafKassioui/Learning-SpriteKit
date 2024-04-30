@@ -5,6 +5,116 @@
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
 
+## Field nodes
+
+*30 April 2024*
+
+Here are some findings about SpriteKit `SKFieldNode`.
+
+Field nodes are areas that apply physical forces to both physics bodies (nodes with an `SKPhysicsBody`) and particles (all particles). There are several kinds of fields:
+
+- Linear gravity field: this could be pictured as a general linear force field, that can accelerate or decelerate objects. Since it is a node, it can be oriented. The force itself is passed as a `vector_float3(x, y, z)` data type (the z is ignored).
+- Radial gravity field: a force field that applies a force from or toward a central point. Could be used as an attractor or a repeller (and therefore as a collider).
+- Velocity field: applies a constant velocity to affected physics bodies (imagine objects on a river stream). Does not affect particles. Note: if both a velocity field and a linear gravity field are present, neither of them seem to work.
+- Velocity field with velocity map, where the Red and Green values store the x and y components of the velocity vector. I haven't made this one work yet.
+- Noise field: applies a random acceleration to physics bodies and particles.
+- Turbulence: same as noise, but the effect is proportional to the body's velocity. This detail produces emergent behavior such as wind and wave effects. Stationary bodies are not affected, because they have no velocity. But particles, even if they look stationary, are affected. This is either a bug, or an expected behavior, which would mean that particles always have a non-nil velocity. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1. Perhaps it has a non-zero velocity.
+- Spring field: applies an oscillation motion around the center of the field.
+- Vortex field: tornado-like effect. It is important to specify a limited region and be mindful of the masses of the affected bodies, otherwise they might instantly fly off.
+- Electric field: affects bodies and particles with a charge (another property of `physicsBody`). All particles have a charge of 1. Can work as an attractor, a repeller, or a container.
+- Magnetic field: affects bodies with velocity. Like turbulence, it does not affect stationary physics bodies. The documentation suggests that electric and magnetic fields can be used as additional layers on top of the mass related fields, to get different behavior from the same bodies.
+
+All fields accept a region parameter of type `SKRegion`, which can be a circle, a rectangle, or a path based polygon.
+
+In regular physics simulations, particles do not interact with physics bodies. But if we use fields, we can make them interact with each other. For example, we can attach a radial field with a negative strength and a circular region to a circular sprite. It will then behave as a particle collider. With the right configuration and bit masks settings, we get some very interesting effects.
+
+Performance: you have to test your own design. I get very nice results with some setups. For example, I could spawn 500 circular physics bodies, all under 2 or 3 fields, running at 60 fps on an iPhone 13. In another setup with large particle emitters, I attached a radial field to each of a hundred sprite balls, to get each ball to collide with particles. The framerate dropped to 20-30fps. With careful setups, we can get very nice things.
+
+Another field provided by SpriteKit is `customField`, which works like this:
+
+```swift
+let customField = SKFieldNode.customField { (position: vector_float3, velocity: vector_float3, mass: Float, charge: Float, deltaTime: TimeInterval) in
+    return vector_float3(1, 0, 0)
+}
+```
+
+Notice the type of the data we can work with: they are all SIMD data types. Fields are implemented with SIMD operations. To implement a custom field, we get the current position, velocity, mass, charge, and simulation time delta, and we must return a velocity vector. It's probably wise to use SIMD operations inside the block, for better performance. In fact, just having `print(deltaTime)` inside the block made Xcode crash.
+
+Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, right? And at least get a pick at if it has drifted. That's what I tried doing with `print(deltaTime)` inside the block, which made Xcode crash because the console got overwhelmed. Before the crash, I definitely noticed a very steady delta time, up until the framerate dropped in the simulator before Xcode froze pegging all of my CPUs.
+
+## Documentation little gems
+
+*28 April 2024*
+
+> //  SKKeyframeSequence.h
+> //  SpriteKit
+> //
+> //  Copyright © 2020 Apple. All rights reserved.
+
+The header file for the `SKKeyframeSequence` class is dated 2020. That's pretty recent! Apple seem to use SpriteKit in some non advertised capacity.
+
+> The rendered tile map can be post processed with an SKShader to add effects such as motion blur or atmospheric perspective.
+
+In [SKTileMapNode](https://developer.apple.com/documentation/spritekit/sktilemapnode). Shaders are expected to be used for effects such as motion blur. However, Apple provides no code sample.
+
+*26 April 2024*
+
+> When a particle is inside the region of a SKFieldNode object, that field node’s categoryBitMask property is compared to the emitter’s fieldBitMask property by performing a logical AND operation. If the result is a non-zero value, then the field node’s effect is applied to the particle as if it had a physics body. The physics body is assumed to have a mass of 1.0 and a charge of 1.0
+
+[SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask). I noticed that field nodes that should only affect bodies with non zero velocity, such as turbulence and magnetic fields, always affect particles, even if the particles appear visually static. This documentation paragraph about the particle emitter may hint that particles are assumed to have specific physics properties at all time, such as mass and charge, and maybe also velocity.
+
+*24 April 2024*
+
+> The values passed into the block by the position and velocity arguments measured in meters: if you need to convert them into points — as used by SpriteKit — multiply the values by 150.
+
+[SKFieldNode customField](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) documentation. In SpriteKit, 1m = 150 points.
+
+## Custom field node
+
+*26 April 2024*
+
+```swift
+let customField = SKFieldNode.customField { (
+    position: vector_float3,
+    velocity: vector_float3,
+    mass: Float,
+    charge: Float,
+    deltaTime: TimeInterval) in
+		print(position)
+		return vector_float3(0, -10, 1)
+}
+
+addChild(customField)
+```
+
+Printing the position gives results like this:
+
+```swift
+SIMD3<Float>(0.0, 0.0, 0.0)
+SIMD3<Float>(0.0, -0.006201601, 0.0)
+SIMD3<Float>(0.0, -0.018599639, 0.0)
+SIMD3<Float>(0.0, -0.037188955, 0.0)
+```
+
+## First experiments with shaders
+
+*21 April 2024*
+
+Comment for Discord:
+
+Yes! Notice this very interesting comment in Apple Documentation, about the `shader` property:
+> The default value is nil, which means the default behavior for sprite rendering is performed. SpriteKit implements many sprite features using a default shader, such as:
+> - Animations on alpha.
+> - SKTexture filteringMode.
+> - Light from SKLightNode.
+> If you supply a custom value for shader, your custom shader overrides the default shader which neutralizes the default features. It is the responsibility of your custom shader to implement any of the features your sprites require.
+
+As usual with SpriteKit, you have to use it and explore it first before understanding the documentation. That bit from Apple is illuminating. My understanding is all rendering is done with shaders. Properties like `filteringMode` are in fact shortcuts for a setting in the default shader that SpriteKit's renderer applies on sprite nodes.
+
+So if we want custom shading, 
+
+https://developer.apple.com/documentation/spritekit/skspritenode/1519714-shader
+
 ## contentMode
 
 *18 April 2024*
@@ -147,6 +257,12 @@ If you set the anchor point of the scene to (x: 0.5, y: 0.5), the origin of the 
 However, if you add a camera to the scene, the scene's origin will be positioned at the center of the camera view, regardless of the scene's anchor point—unless you reposition the camera, that is. So when the scene has a camera, the anchor point is ignored.
 
 ## Apple documentation errors
+
+*28 April 2024*
+
+The typos in the comments inside `SKConstraint` header file are pretty funny!
+
+<img src="Screenshots/SKConstraint header file typos.png" alt="SKConstraint header file typos" style="width:100%;" />
 
 *19 March 2024*
 
