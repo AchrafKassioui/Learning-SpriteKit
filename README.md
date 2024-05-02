@@ -5,23 +5,22 @@
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
 
-## Field nodes
+## SKFieldNode
 
 *30 April 2024*
 
-Here are some findings about SpriteKit `SKFieldNode`.
+SpriteKit `SKFieldNode` are areas that apply forces to nodes with a `physicsBody` and particles. There are several kinds of fields:
 
-Field nodes are areas that apply physical forces to both physics bodies (nodes with an `SKPhysicsBody`) and particles (all particles). There are several kinds of fields:
-
-- Linear gravity field: this could be pictured as a general linear force field, that can accelerate or decelerate objects. Since it is a node, it can be oriented. The force itself is passed as a `vector_float3(x, y, z)` data type (the z is ignored).
-- Radial gravity field: a force field that applies a force from or toward a central point. Could be used as an attractor or a repeller (and therefore as a collider).
-- Velocity field: applies a constant velocity to affected physics bodies (imagine objects on a river stream). Does not affect particles. Note: if both a velocity field and a linear gravity field are present, neither of them seem to work.
-- Velocity field with velocity map, where the Red and Green values store the x and y components of the velocity vector. I haven't made this one work yet.
-- Noise field: applies a random acceleration to physics bodies and particles.
-- Turbulence: same as noise, but the effect is proportional to the body's velocity. This detail produces emergent behavior such as wind and wave effects. Stationary bodies are not affected, because they have no velocity. But particles, even if they look stationary, are affected. This is either a bug, or an expected behavior, which would mean that particles always have a non-nil velocity. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1. Perhaps it has a non-zero velocity.
+- `linearGravityField`: accelerates bodies in one direction. Since it is a node, it can be oriented to change its direction. The acceleration is passed as a `vector_float3(x, y, z)` data type (the z is ignored). Gravity is an example use case. A launch ramp could be another.
+- `radialGravityField`: accelerates bodies from or toward a point. Could be used as an attractor or a repeller (and therefore as a strong collider).
+- `dragField`: applies a force proportional to the body's velocity. Typically used to simulate friction. Positive strengths slow down moving bodies. Negative strengths accelerate moving bodies.  A drag field only affects bodies that have a velocity.
+- `velocityField`: applies a constant velocity to bodies, and overrides their previous one (picture a floating objects on a water stream). Does not affect particles.
+- `velocityField(with: texture)`: where the Red and Green values of the texture store the x and y components of the velocity vector. I haven't made this one work convincingly yet. Bodies don't seem to follow the red and green gradients of the texture. Need more testing.
+- `noiseField`: applies a random acceleration to bodies. The smoothness and frequency of the random pushes can be tweaked.
+- Turbulence: same as noise, but the effect is proportional to the body's velocity. This detail produces emergent behavior such as wind and wave effects. Stationary bodies are not affected because they have no velocity. But particles, even if they look stationary, are affected. This is either a bug, or an expected behavior, which would mean that particles always have a non-nil velocity. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1. Perhaps it has a non-zero velocity.
 - Spring field: applies an oscillation motion around the center of the field.
-- Vortex field: tornado-like effect. It is important to specify a limited region and be mindful of the masses of the affected bodies, otherwise they might instantly fly off.
-- Electric field: affects bodies and particles with a charge (another property of `physicsBody`). All particles have a charge of 1. Can work as an attractor, a repeller, or a container.
+- Vortex field: tornado-like effect. It is important to specify a limited region and be mindful of the masses of the affected bodies, otherwise they might fly off instantly.
+- Electric field: affects bodies and particles with a charge, which is another property of `physicsBody`. All particles have a charge of 1. Can work as an attractor, a repeller, or a container.
 - Magnetic field: affects bodies with velocity. Like turbulence, it does not affect stationary physics bodies. The documentation suggests that electric and magnetic fields can be used as additional layers on top of the mass related fields, to get different behavior from the same bodies.
 
 All fields accept a region parameter of type `SKRegion`, which can be a circle, a rectangle, or a path based polygon.
@@ -42,7 +41,25 @@ Notice the type of the data we can work with: they are all SIMD data types. Fiel
 
 Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, right? And at least get a pick at if it has drifted. That's what I tried doing with `print(deltaTime)` inside the block, which made Xcode crash because the console got overwhelmed. Before the crash, I definitely noticed a very steady delta time, up until the framerate dropped in the simulator before Xcode froze pegging all of my CPUs.
 
+### Issues & observations
+
+- When a velocity field is present, it becomes confusing to understand how other fields will behave. Particles become immune to any other field, regardless of the position and region of the velocity field. Physics bodies become immune to all fields. However, if the `isExclusive` property of a velocity field is set to `true`, it will work along other fields as expected, but only on physics bodies, not particles. Note that the strength property of a velocity field has no effect.
+- Setting up a custom field to simulate a velocity field only work if the returned velocity isn't zero.
+- Rotating a particle emitter `SKEmitterNode` with the `zRotation` property mess up its interaction with physics fields. The physics field behave as if the particle emitter has not rotated. In order to rotate a particle emitter, its `emissionAngle` should be changed instead of `zRotation`.
+
 ## Documentation little gems
+
+*1 may 2024*
+
+> PHYSICSKIT_MINUS_GL_IMPORTS
+
+A [SpriteKit constant](https://developer.apple.com/documentation/spritekit/physicskit_minus_gl_imports?changes=_3__8), introduced with iOS13 in 2019. What does it do? What does it mean? In Xcode, we can get to its header file by right-clicking a `vector_float3` type in `SKFieldForceEvaluator` :
+
+```swift
+let field = SKFieldNode.customField { (position: vector_float3, velocity: vector_float3, mass: Float, charge: Float, deltaTime: TimeInterval) in
+    return vector_float3(0, 0, 0)
+}
+```
 
 *28 April 2024*
 
@@ -456,11 +473,22 @@ let shape = SKShapeNode()
 shape.path = path
 ```
 
-## Selection and retrieval
+## Selection and traversal
 
 *14 March 2024*
 
 ```swift
+// select all nodes
+enumerateChildNodes(withName: "//.", using: {node, _ in
+
+})
+
+// find nodes that have "string" in their name
+// The asterisks (*) match any characters before and after the search string
+enumerateChildNodes(withName: "//*string*", using: {node, _ in
+
+})
+
 // select a node by name, no matter how deep in the hierarchy
 // the `//` means that the search doesn't stop to the immediate children nodes
 parentNode.childNode(withName: "//nodeName")
