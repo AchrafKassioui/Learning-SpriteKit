@@ -49,6 +49,12 @@ Speaking of delta time: [the documentation](https://developer.apple.com/document
 
 ## Documentation little gems
 
+*6 May 2024*
+
+> A body with no shapes is ethereal and does not collide with other bodies.
+
+From the header file of `SKPhysicsBody`. A thought provoking statement!
+
 *1 may 2024*
 
 > PHYSICSKIT_MINUS_GL_IMPORTS
