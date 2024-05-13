@@ -13,6 +13,10 @@ SpriteKit `SKFieldNode` are areas that apply forces to nodes with a `physicsBody
 
 - `linearGravityField`: accelerates bodies in one direction. Since it is a node, it can be oriented to change its direction. The acceleration is passed as a `vector_float3(x, y, z)` data type (the z is ignored). Gravity is an example use case. A launch ramp could be another.
 - `radialGravityField`: accelerates bodies from or toward a point. Could be used as an attractor or a repeller (and therefore as a strong collider).
+  - Region: if no region is specified, the affected area is infinite, and the acceleration will depend on the distance between the body and the center of the field.
+  - Falloff: default is 0. Higher positive values make the bodies accelerate more as they approach the center, lower negative values dampen the acceleration.
+  - Minimum radius: ?
+  
 - `dragField`: applies a force proportional to the body's velocity. Typically used to simulate friction. Positive strengths slow down moving bodies. Negative strengths accelerate moving bodies.  A drag field only affects bodies that have a velocity.
 - `velocityField`: applies a constant velocity to bodies, and overrides their previous one (picture a floating objects on a water stream). Does not affect particles.
 - `velocityField(with: texture)`: where the Red and Green values of the texture store the x and y components of the velocity vector. I haven't made this one work convincingly yet. Bodies don't seem to follow the red and green gradients of the texture. Need more testing.
@@ -29,7 +33,7 @@ In regular physics simulations, particles do not interact with physics bodies. B
 
 Performance: you have to test your own design. I get very nice results with some setups. For example, I could spawn 500 circular physics bodies, all under 2 or 3 fields, running at 60 fps on an iPhone 13. In another setup with large particle emitters, I attached a radial field to each of a hundred sprite balls, to get each ball to collide with particles. The framerate dropped to 20-30fps. With careful setups, we can get very nice things.
 
-Another field provided by SpriteKit is `customField`, which works like this:
+Another field provided by SpriteKit is `customField`, which looks like this:
 
 ```swift
 let customField = SKFieldNode.customField { (position: vector_float3, velocity: vector_float3, mass: Float, charge: Float, deltaTime: TimeInterval) in
@@ -37,9 +41,9 @@ let customField = SKFieldNode.customField { (position: vector_float3, velocity: 
 }
 ```
 
-Notice the type of the data we can work with: they are all SIMD data types. Fields are implemented with SIMD operations. To implement a custom field, we get the current position, velocity, mass, charge, and simulation time delta, and we must return a velocity vector. It's probably wise to use SIMD operations inside the block, for better performance. In fact, just having `print(deltaTime)` inside the block made Xcode crash.
+Notice the type of the data we work with: they are all SIMD data types. Fields are implemented with SIMD operations. To implement a custom field, we get the current position, velocity, mass, charge, and simulation time delta, and we must return a velocity vector. It's probably wise to use SIMD operations inside the block, for better performance. In fact, just having `print(deltaTime)` inside the block made Xcode crash.
 
-Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, right? And at least get a pick at if it has drifted. That's what I tried doing with `print(deltaTime)` inside the block, which made Xcode crash because the console got overwhelmed. Before the crash, I definitely noticed a very steady delta time, up until the framerate dropped in the simulator before Xcode froze pegging all of my CPUs.
+Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, right? And at least get a peek at how/if it has drifted. That's what I tried doing with `print(deltaTime)` inside the block, which made Xcode crash because the console got overwhelmed. Before the crash, I definitely noticed a very steady delta time, up until the framerate dropped in the simulator before Xcode froze pegging all of my CPU cores.
 
 ### Issues & observations
 
@@ -170,8 +174,10 @@ An interesting example I tested recently is a macOS app called [Euler VS Pro](ht
 
 Below is a list of people from Apple who were involved with the development of SpriteKit.
 
-- **[Tim Oriol](https://www.linkedin.com/in/toriol/)**: "Original architect and engineering lead for SpriteKit, shipped in iOS 7. Responsible for initial proposal, prototyping and research, production architecture and feature implementation, growing the team, and designing the final API surface. [...] Continued to lead and grow the SpriteKit team. Responsible for migrating the rendering system to Metal and new features including animatable mesh warps, camera system, and custom shader support. Designed and implemented the particle effects system to support the fireworks fullscreen message effects (shipped in iOS 10)." [ndr: this is one of the reasons I'm interested in SpriteKit and native frameworks: I want seamless integration with the operating system and the rest of the features that users of that platform are accustomed to.]
+- [Tim Oriol](https://www.linkedin.com/in/toriol/): "Original architect and engineering lead for SpriteKit, shipped in iOS 7. Responsible for initial proposal, prototyping and research, production architecture and feature implementation, growing the team, and designing the final API surface. [...] Continued to lead and grow the SpriteKit team. Responsible for migrating the rendering system to Metal and new features including animatable mesh warps, camera system, and custom shader support. Designed and implemented the particle effects system to support the fireworks fullscreen message effects (shipped in iOS 10)." [ndr: this is one of the reasons I'm interested in SpriteKit and native frameworks: I want seamless integration with the operating system and the rest of the features that users of that platform are accustomed to.]
+- [Nick Porcino](https://www.linkedin.com/in/nick-porcino-8b5438/): very interesting in [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov), WWDC 2014. Other links: [Google Scholar](https://scholar.google.com/citations?user=_TDOVAQAAAAJ&hl=en), a [webpage](http://nickporcino.com)
 - [Jacques Gasselin de Richebourg](https://www.linkedin.com/in/jacques-gasselin-de-richebourg-3b8924108/)
+- [Norman Wang](https://www.linkedin.com/in/normanwang/), from [session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov), WWDC 2014.
 
 ## View properties
 
@@ -1533,6 +1539,7 @@ class SpriteKitScene: SKScene {
 
 ## Links & Resources
 
+- 🛠️ [SKUtilities2](https://github.com/mredig/SKUtilities2?tab=readme-ov-file), *accessed 8 may 2024*
 - 📝 [Hanging chains with physics joints](http://www.waveworks.de/howto-make-hanging-chains-sprite-kit-physics-joints/), *accessed 31 March 2024*
 - 📐 [SKPhysicsBody Path Generator](http://insyncapp.net/SKPhysicsBodyPathGenerator.html): an old page that generates a CGPath by manually drawing lines over a sprite on the browser. The generated code is in Objective-C with an old syntax, but still interesting to know.
 - 🔎 [SpriteKit repositories](https://github.com/topics/spritekit). Search GitHub with tag "spritekit"
