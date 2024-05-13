@@ -7,7 +7,7 @@
 
 ## SKFieldNode
 
-*30 April 2024*
+*30 April 2024, updated 10 May 2024*
 
 SpriteKit `SKFieldNode` are areas that apply forces to nodes with a `physicsBody` and particles. There are several kinds of fields:
 
