@@ -170,12 +170,12 @@ An interesting example I tested recently is a macOS app called [Euler VS Pro](ht
 
 ## SpriteKit original team
 
-*9 April 2024*
+*9 April 2024, updated 13 May 2024*
 
 Below is a list of people from Apple who were involved with the development of SpriteKit.
 
 - [Tim Oriol](https://www.linkedin.com/in/toriol/): "Original architect and engineering lead for SpriteKit, shipped in iOS 7. Responsible for initial proposal, prototyping and research, production architecture and feature implementation, growing the team, and designing the final API surface. [...] Continued to lead and grow the SpriteKit team. Responsible for migrating the rendering system to Metal and new features including animatable mesh warps, camera system, and custom shader support. Designed and implemented the particle effects system to support the fireworks fullscreen message effects (shipped in iOS 10)." [ndr: this is one of the reasons I'm interested in SpriteKit and native frameworks: I want seamless integration with the operating system and the rest of the features that users of that platform are accustomed to.]
-- [Nick Porcino](https://www.linkedin.com/in/nick-porcino-8b5438/): very interesting in [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov), WWDC 2014. Other links: [Google Scholar](https://scholar.google.com/citations?user=_TDOVAQAAAAJ&hl=en), a [webpage](http://nickporcino.com)
+- [Nick Porcino](https://www.linkedin.com/in/nick-porcino-8b5438/): very interesting and likable in [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov), WWDC 2014. Other links: [Google Scholar](https://scholar.google.com/citations?user=_TDOVAQAAAAJ&hl=en), a [webpage](http://nickporcino.com)
 - [Jacques Gasselin de Richebourg](https://www.linkedin.com/in/jacques-gasselin-de-richebourg-3b8924108/)
 - [Norman Wang](https://www.linkedin.com/in/normanwang/), from [session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov), WWDC 2014.
 
