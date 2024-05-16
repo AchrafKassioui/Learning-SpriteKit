@@ -393,6 +393,26 @@ Mind you that Core Graphics is a framework optimized for quality rather than per
 
 ## Core Image filters in SpriteKit
 
+*14 May 2024*
+
+When a filter is directly applied to the scene, the effect region takes the size of the scene. Nodes outside that region will be clipped (they are there, just not rendered). This is especially visible when there is a camera in the scene, and it's moved or zoomed out. For example:
+
+```swift
+override func didMove(to view: SKView) {
+	size = CGSize(width: view.bounds.width, height: view.bounds.height)
+    let myFilter = CIFilter.bumpDistortion()
+    myFilter.center = CGPoint(x: 390, y: 844)
+    myFilter.radius = 844
+    myFilter.scale = 0.2
+    filter = ChainCIFilter(filters: [myFilter])
+    shouldEnableEffects = true
+}
+```
+
+The filter above will output a result that is no greater than the view size. When a filter is applied on the scene, it appears as if it is actually applied on the view size. Everything in the scene "slides under it."
+
+In order to get a larger effect area, filters should be applied on a dedicated effect node, and `scene.shouldEnableEffects` should be set to `false`. That effect node takes the accumulated size of its children, like any other parent node.
+
 *12 April 2024*
 
 When you apply a Core Image filter in SpriteKit, it's important to understand the difference between a screen-space effect and an object-space or scene-space effect. Filters are always applied through `SKEffectNode`, therefore, the filter's effects will be drawn relative to that node. A node moving inside the effect node will "traverse" the effect applied on the effect node. For example, if you apply a pointillize effect, the dots will "belong" to the effect node, not to the nodes inside it. If you want the dots to "travel" with a moving node, you have to move the effect node itself. At which point, you might as well produce a static texture with Core Image, that you use as an `SKTexture` for a sprite node, which is better for performance.
@@ -1065,6 +1085,14 @@ SpriteView(
     debugOptions: [.showsFPS, .showsNodeCount, .showsDrawCount, .showsQuadCount, .showsPhysics, .showsFields]
 )
 ```
+
+## Camera
+
+*14 May 2024*
+
+In SpriteKit, the view is the real camera. The view is the window through which the scene is drawn. When effects are applied directly on the scene with an effect node, we can see the nodes "slide" under the effects.
+
+The camera node `SKCameraNode` is a convenience node that transforms all objects in an opposite way relative to the camera, repositioning them into the view, therefore simulating a moving camera. By creating multiple cameras, we can quickly reposition the view into the scene.
 
 ## Scene size
 
