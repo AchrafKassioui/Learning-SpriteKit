@@ -5,33 +5,119 @@
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
 
+## Physics scales
+
+*28 May 2024*
+
+I have been exploring many aspects of physics in SpriteKit. My project is based on physics, and I need to understand how SpriteKit simulation engine works and what are its limitations.
+
+One of the experiments is to build UI with physics. The palettes would be positioned and manipulated through physics (velocity change). Here is a first example:
+
+<video src="../../../Pictures/Screenshots/SpriteKit - Left palette with spring field - Right palette with radial gravity field.mp4" width="303"></video>
+
+- The right palette is under a radial gravity field. The field is centered around the bottom right corner.
+- The left palette is under a spring field. The spring field is centered around the bottom left corner.
+- The palettes can be dragged freely. Once they are released, the fields bring them back into place.
+
+When the camera is at 100%, things work pretty well. However, once the camera is scaled, I stumble on physics scaling challenges.
+
+Indeed, when the camera is scaled up or down, UI objects attached to it are also scaled, therefore changing their physics properties. In SpriteKit physics engine, you can define either the density or the mass of a physics body. Changing one changes the other. If a node is scaled, the physics body attached to it is also scaled, and SpriteKit defines its new area (`physicsBody.area` is a get only property). From that new area, a new mass is calculated based on the density. So when the camera is scaled, bodies attached to it get a new mass, and the distances between bodies in scene coordinates are also scaled.
+
+In the video above, when the zoom level changes, you can see that the radial gravity field behaves consistently. Why? Because under gravity, objects of different masses fall at the same rate! So even if the palette's mass changes when it is scaled, the overall behavior is maintained because the overall distance proportions are also maintained.
+
+The spring field however behaves differently. It becomes looser when the camera zooms out, and snappier when the camera zooms in. To compensate, I call this function in the update loop:
+
+```swift
+func updateSpringFields() {
+    enumerateChildNodes(withName: "//*ui-field-spring*", using: {node, _ in
+        if let field = node as? SKFieldNode, let camera = self.camera {
+            let originalStrength: Float = 40
+            let factor = pow(camera.xScale, 2)
+            field.strength = originalStrength * Float(factor)
+        }
+    })
+}
+```
+
+That factor change makes the spring field behave more consistently across zoom level, but I'm not happy yet. I haven't found the exact factor to use, and I'm not sure which properties I should update with camera scale.
+
+*22 May 2024*
+
+When physics bodies are children of the camera, and when the camera is zoomed in or out, those physics bodies become unstable or display undesired behavior. For example
+
+- Case 1: a box of size 60x60, child of the scene, not of the camera. There is a physics boundary around the box, that is of size 400x400. When the body falls under gravity, it works fine.
+- Case 2, the same box, but this time it is a child of the camera, and the physics boundary is a child of the camera as well. When the camera is zoomed out 10x, i.e. when its scale is 10, and the body falls under gravity, the box won't rest. It constantly vibrates at its point of contact with the bottom edge of the boundary.
+
+### Links
+
+- [This StackOveflow](https://stackoverflow.com/a/21417523/420176) post mentions a jiggling behavior with JBox2D when a zoom factor is involved.
+
+## Physics Joints
+
+*17 May 2024*
+
+If you create a joint, for example a spring joint, then print its type, you get `PKPhysicsJointDistance`:
+
+```swift
+let spring = SKPhysicsJointSpring.joint(
+    withBodyA: myBodyA.physicsBody!,
+    bodyB: myBodyB.physicsBody!,
+    anchorA: myBodyA.position,
+    anchorB: myBodyB.position
+)
+spring.frequency = 1
+spring.damping = 1
+physicsWorld.add(spring)
+print("Spring joint added with type: \(type(of: spring))")
+```
+
+This means that if you want to target that joint programmatically, for example through the `joints` array property of `physicsBody`, you won't be able to retrieve the spring joint in order to modify its properties:
+
+```swift
+if let joints = myBodyB.physicsBody?.joints {
+    for joint in joints {
+        if let springJoint = joint as? SKPhysicsJointSpring {
+            // the code won't reach here
+        }
+    }
+}
+```
+
+We can't use that to modify the frequency or the damping of the spring. You can only read some properties like `joint.reactionForce` and `joint.reactionTorque`.
+
+I find that the only way to modify the joint properties is to store the spring joint in a global variable.
+
+### Links:
+
+- [iOS 14.4 headers](https://developer.limneos.net/?ios=14.4&framework=PhysicsKit.framework&header=PKPhysicsJointDistance.h)
+- Rob Mayoff on [Stack Overflow.](https://stackoverflow.com/a/32018784/420176)
+
 ## SKFieldNode
 
 *30 April 2024, updated 10 May 2024*
 
-SpriteKit `SKFieldNode` are areas that apply forces to nodes with a `physicsBody` and particles. There are several kinds of fields:
+SpriteKit `SKFieldNode` are areas that apply forces to physics bodies and particles. There are several kinds of fields:
 
-- `linearGravityField`: accelerates bodies in one direction. Since it is a node, it can be oriented to change its direction. The acceleration is passed as a `vector_float3(x, y, z)` data type (the z is ignored). Gravity is an example use case. A launch ramp could be another.
+- `linearGravityField`: accelerates bodies in one direction. Since it is a node, it can be oriented to change its direction. The acceleration is passed as a `vector_float3(x, y, z)` data type (the z is ignored). Use case examples: gravity, launch ramp.
 - `radialGravityField`: accelerates bodies from or toward a point. Could be used as an attractor or a repeller (and therefore as a strong collider).
   - Region: if no region is specified, the affected area is infinite, and the acceleration will depend on the distance between the body and the center of the field.
   - Falloff: default is 0. Higher positive values make the bodies accelerate more as they approach the center, lower negative values dampen the acceleration.
   - Minimum radius: ?
-  
 - `dragField`: applies a force proportional to the body's velocity. Typically used to simulate friction. Positive strengths slow down moving bodies. Negative strengths accelerate moving bodies.  A drag field only affects bodies that have a velocity.
 - `velocityField`: applies a constant velocity to bodies, and overrides their previous one (picture a floating objects on a water stream). Does not affect particles.
 - `velocityField(with: texture)`: where the Red and Green values of the texture store the x and y components of the velocity vector. I haven't made this one work convincingly yet. Bodies don't seem to follow the red and green gradients of the texture. Need more testing.
 - `noiseField`: applies a random acceleration to bodies. The smoothness and frequency of the random pushes can be tweaked.
-- Turbulence: same as noise, but the effect is proportional to the body's velocity. This detail produces emergent behavior such as wind and wave effects. Stationary bodies are not affected because they have no velocity. But particles, even if they look stationary, are affected. This is either a bug, or an expected behavior, which would mean that particles always have a non-nil velocity. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1. Perhaps it has a non-zero velocity.
-- Spring field: applies an oscillation motion around the center of the field.
-- Vortex field: tornado-like effect. It is important to specify a limited region and be mindful of the masses of the affected bodies, otherwise they might fly off instantly.
-- Electric field: affects bodies and particles with a charge, which is another property of `physicsBody`. All particles have a charge of 1. Can work as an attractor, a repeller, or a container.
-- Magnetic field: affects bodies with velocity. Like turbulence, it does not affect stationary physics bodies. The documentation suggests that electric and magnetic fields can be used as additional layers on top of the mass related fields, to get different behavior from the same bodies.
+- `turbulenceField`: same as noise, but the effect is proportional to the body's velocity. This detail produces emergent behavior such as wind and wave effects. Stationary bodies are not affected because they have no velocity. But particles, even if they look stationary and have a speed of 0, are affected.
+- `springField`: applies an oscillation motion around the center of the field.
+- `vortexField`: tornado-like effect. It is important to specify a limited region and be mindful of the masses of the affected bodies, otherwise they might fly off instantly.
+- `electricField`: affects bodies and particles with a charge, which is another property of `physicsBody`. All particles have a charge of 1. Can work as an attractor, a repeller, or a container.
+- `magneticField`: affects bodies with velocity. Like turbulence, it does not affect stationary physics bodies. But unlike turbulence fields, particles with a speed of 0 are also not affected. In [WWDC 2014 session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov) at 33', Norman Wang suggests that magnetic fields could be used to simulate a Lorenz Attractor. In Xcode, header files suggest that electric and magnetic fields can be used as additional layers next to mass related fields, in order to get different behavior from the same bodies.
 
 All fields accept a region parameter of type `SKRegion`, which can be a circle, a rectangle, or a path based polygon.
 
-In regular physics simulations, particles do not interact with physics bodies. But if we use fields, we can make them interact with each other. For example, we can attach a radial field with a negative strength and a circular region to a circular sprite. It will then behave as a particle collider. With the right configuration and bit masks settings, we get some very interesting effects.
+In regular physics simulations, particles do not interact with physics bodies. But if we use fields, we can make them interact with each other. For example, we can attach a radial gravity field with a negative strength and a limited circular region to a round sprite. It will behave as a particle collider. With the right configuration and bit masks settings, we get some very interesting effects.
 
-Performance: you have to test your own design. I get very nice results with some setups. For example, I could spawn 500 circular physics bodies, all under 2 or 3 fields, running at 60 fps on an iPhone 13. In another setup with large particle emitters, I attached a radial field to each of a hundred sprite balls, to get each ball to collide with particles. The framerate dropped to 20-30fps. With careful setups, we can get very nice things.
+Performance: you have to test your own setup. I get very nice results with some setups. For example, I could spawn 500 circular physics bodies, all under 2 or 3 fields, running at 60 fps on an iPhone 13. In another setup with large particle emitters, I attached a radial field to each of a hundred sprite balls, to get each ball to collide with particles. The framerate dropped to 20-30fps. With careful setups, we can get very nice things.
 
 Another field provided by SpriteKit is `customField`, which looks like this:
 
@@ -41,12 +127,13 @@ let customField = SKFieldNode.customField { (position: vector_float3, velocity: 
 }
 ```
 
-Notice the type of the data we work with: they are all SIMD data types. Fields are implemented with SIMD operations. To implement a custom field, we get the current position, velocity, mass, charge, and simulation time delta, and we must return a velocity vector. It's probably wise to use SIMD operations inside the block, for better performance. In fact, just having `print(deltaTime)` inside the block made Xcode crash.
+Notice the type of the data we work with: they are all SIMD data types. Fields are implemented with SIMD operations. To implement a custom field, we get the current position, velocity, mass, charge, and simulation time delta, and we must return a velocity vector. It's probably wise to use SIMD operations inside the block, for better performance.
 
-Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, right? And at least get a peek at how/if it has drifted. That's what I tried doing with `print(deltaTime)` inside the block, which made Xcode crash because the console got overwhelmed. Before the crash, I definitely noticed a very steady delta time, up until the framerate dropped in the simulator before Xcode froze pegging all of my CPU cores.
+Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, and at least get a peek at how/if it has drifted. I tried doing that with `print(deltaTime)` inside the block, but it made Xcode crash after the console got overwhelmed. Before the crash, I noticed a steady delta time, up until it changed when the framerate dropped in the simulator right before the crash.
 
 ### Issues & observations
 
+- Particles are assumed to have a mass of 1 and a charge of 1. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1.
 - When a velocity field is present, it becomes confusing to understand how other fields will behave. Particles become immune to any other field, regardless of the position and region of the velocity field. Physics bodies become immune to all fields. However, if the `isExclusive` property of a velocity field is set to `true`, it will work along other fields as expected, but only on physics bodies, not particles. Note that the strength property of a velocity field has no effect.
 - Setting up a custom field to simulate a velocity field only work if the returned velocity isn't zero.
 - Rotating a particle emitter `SKEmitterNode` with the `zRotation` property mess up its interaction with physics fields. The physics field behave as if the particle emitter has not rotated. In order to rotate a particle emitter, its `emissionAngle` should be changed instead of `zRotation`.
@@ -255,6 +342,8 @@ colorWheel.physicsBody?.angularVelocity += 5
 
 Spinning a perfect circle that has a bloom filter applied to it can make the circle rock back and forth. It appears as if the sprite's center of rotation has changed. I experienced similar effects with other filters such as gaussian blur.
 
+*17 May 2024*: a related issue: when 1) an effect node is added to the scene, 2) a container node is added as a child of the effect node, 3) nodes are added to the container node, 4) physics simulation is applied to some children nodes, and they consistently collide with a boundary, 5) a filter is applied to the effect node, then the rendered result jiggles on the screen and never rests. The physics simulation on the children of the container node seems to affect the output result of the filter on the effect node.
+
 ### Physics bodies can not be automatically generated from textures with holes in them
 
 Examples: SKLabelNode with non contiguous characters, SKTexture with non contiguous opaque regions.
@@ -437,6 +526,10 @@ SpriteKit has built-in methods using Core Image filters for:
 - Applying filters to nodes of type `SKEffectNode`. Out of the box, `SKEffectNode.filter` accepts filters that have a single inputImage parameter and produce a single outputImage parameter.
 - Applying filters to scene transitions with `SKTransition`. Out of the box, `SKTransition.init(ciFilter:duration:)` accepts filters that require only two image parameters (inputImage, inputTargetImage) and generate a single image (outputImage).
 - Applying filters to textures of type `SKTexture` to produce a new texture. Out of the box, `SKTexture.applying(CIFilter)` accepts filters that require a single inputImage parameter and produce an outputImage parameter.
+
+### Links
+
+- [Creating a custom variable blur filter in Core Image](http://flexmonkey.blogspot.com/2016/04/creating-custom-variable-blur-filter-in.html)
 
 ## Shape nodes
 
