@@ -5,6 +5,53 @@
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
 
+## Gestures and SpriteKit
+
+*5 June 2024*
+
+### UIKit Gesture Recognizers
+
+This function sets up a tap gesture recognizer on a SpriteKit view:
+
+```swift
+func setupGestureRecognizers(view: SKView) {
+    let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(myFunctionThatHandlesTheGesture(gesture:)))
+    tapRecognizer.delegate = self // self = scene
+    tapRecognizer.numberOfTapsRequired = 2
+    tapRecognizer.cancelsTouchesInView = false
+    view.addGestureRecognizer(tapRecognizer)
+}
+```
+
+A double tap gesture recognizer will prevent the second tap from triggering a touch event on the scene, even if `cancelsTouchesInView` is set to false.
+
+### SwiftUI Gestures
+
+The code bellow will run whenever SpriteView is touched (touches began) or dragged on (touches moved).
+
+```swift
+SpriteView(scene: myScene)
+.simultaneousGesture(
+    DragGesture(minimumDistance: 0)
+        .onChanged { gesture in
+			// code here
+        }
+)
+```
+
+If minimumDistance is set to 0, the scene will not receive any touch events. If the minimumDistance is set to 1 or greater, only touchesBegan events will be received by the scene.
+
+If we use a tap gesture instead of a drag gesture,
+
+```swift
+SpriteView(scene: myScene)
+.onTapGesture() { location in
+	// code here
+}
+```
+
+Then all touch events are delivered to the scene.
+
 ## Physics scales
 
 *28 May 2024*
@@ -131,12 +178,12 @@ Notice the type of the data we work with: they are all SIMD data types. Fields a
 
 Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, and at least get a peek at how/if it has drifted. I tried doing that with `print(deltaTime)` inside the block, but it made Xcode crash after the console got overwhelmed. Before the crash, I noticed a steady delta time, up until it changed when the framerate dropped in the simulator right before the crash.
 
-### Issues & observations
+### Observations and issues
 
 - Particles are assumed to have a mass of 1 and a charge of 1. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1.
 - When a velocity field is present, it becomes confusing to understand how other fields will behave. Particles become immune to any other field, regardless of the position and region of the velocity field. Physics bodies become immune to all fields. However, if the `isExclusive` property of a velocity field is set to `true`, it will work along other fields as expected, but only on physics bodies, not particles. Note that the strength property of a velocity field has no effect.
 - Setting up a custom field to simulate a velocity field only work if the returned velocity isn't zero.
-- Rotating a particle emitter `SKEmitterNode` with the `zRotation` property mess up its interaction with physics fields. The physics field behave as if the particle emitter has not rotated. In order to rotate a particle emitter, its `emissionAngle` should be changed instead of `zRotation`.
+- Rotating a particle emitter `SKEmitterNode` with the `zRotation` property mess up its interaction with physics fields. The physics field behave as if the particle emitter has not rotated. In order to rotate a particle emitter, its `emissionAngle` should be changed instead of its `zRotation`.
 
 ## Documentation little gems
 
@@ -481,6 +528,46 @@ In both cases, we get a sprite node, i.e. a node that draws a bitmap image. This
 Mind you that Core Graphics is a framework optimized for quality rather than performance. It is not meant to produce images 60 or 120 times per second.
 
 ## Core Image filters in SpriteKit
+
+*5 June 2024*
+
+If filters are enabled on the scene and if there is a camera that is zoomed out:
+
+```swift
+import CoreImage.CIFilterBuiltins
+
+override func didMove(to view: SKView) {
+    size = view.bounds.size
+    filter = CIFilter.motionBlur()
+	shouldEnableEffects = true
+    
+    let myCamera = SKCameraNode()
+    myCamera.setScale(3)
+    camera = myCamera
+}
+```
+
+The scene will appear cropped to the size it was initialized with. SpriteKit automatically limits the area that is rendered and filtered. This is probably due to the Metal Texture size limit, which mirrors the limits of the maximum width and height that the GPU can handle. By default, SpriteKit uses the scene size as the texture size that is processed by Core Image. Remember: scene size is a convenience property. The scene itself is infinite. Its size defines the area that is presented by the view.
+
+If Core Image filters are applied on a separate effect node instead of the scene itself, the renderer will crash if the accumulated size of the effect node exceeds the Metal size limit. For example, if you write this:
+
+```swift
+let effectLayer = SKEffectNode()
+addChild(effectLayer)
+effectLayer.filter = CIFilter.motionBlur()
+
+let sprite = SKSpriteNode(color: .red, size: CGSize(width: 150, height: 150))
+sprite.position.x = -5000
+effectLayer.addChild(sprite)
+
+let sprite2 = SKSpriteNode(color: .yellow, size: CGSize(width: 150, height: 150))
+sprite2.position.x = 5000
+effectLayer.addChild(sprite2)
+```
+
+The renderer will crash, because the accumulated size of the effect node, 10150x150 points, exceeds the Metal texture size that any Apple GPU can handle, which is 16384x16384. The size of the effect node is in points. When converted into pixels, each points is represented by 2 or 3 pixels on Retina displays, which puts the effect layer above 20 or 30k pixels across.
+
+Even if you control the placement of your nodes, large accumulated sizes can quickly happen, for example with a particle emitter. Particles subject to a physics field node can be projected very far away, exceeding the extent of the texture that Core Image, and therefore the GPU, can process.
 
 *14 May 2024*
 
@@ -1481,27 +1568,50 @@ override func didSimulatePhysics() {
 
 ## Actions
 
-```swift
-// Scale
-let appear = SKAction.scale(to: 1.0, duration: 0.5) // scale(to) can not be reversed
-myNode.run(appear)
+Actions durations are expressed in seconds. Actions parameters that contain `by` are usually reversible. The basic structure for applying an action to a node is the following:
 
-let scaleUp = SKAction.scale(by: 1.2, duration: 0.25) // scale(by) can be reversed
-let scaleDown = scaleUp.reversed()
+```swift
+let myNode = SKNode()
+let myAction = SKAction.move(by: CGVector(dx: 150, dy: 0), duration: 1)
+myNode.run(myAction)
+
+/// Or the compressed way:
+myNode.run(SKAction.move(by: CGVector(dx: 150, dy: 0), duration: 1))
+```
+
+The action can be set to repeat continuously like this:
+
+```swift
+let myRepeatedAction = SKAction.repeatForever(myAction)
+myNode.run(myRepeatedAction)
+```
+
+Examples of actions:
+
+```swift
+/// Run code after an action has finised
+myNode.run(myAction) {
+    // code to run
+}
+
+/// Scale
+let appear = SKAction.scale(to: 1.0, duration: 0.5)
+let scaleUp = SKAction.scale(by: 1.2, duration: 0.25)
+let scaleDown = scaleUp.reversed() // scale(by) can be reversed
 
 // Position
 let moveToAction = SKAction.move(to: CGPoint(x: 1.0, y: 1.0), duration: 1.0)
-
 let moveByAction = SKAction.moveBy(CGPoint(x: 1.0, y: 1.0), duration: 1.0)
 let reverseMoveBy = moveByAction.reversed() // moveBy actions can be reversed
 
-//
-SKAction.wait(forDuration: 1.0) // duration in sec
+/// Wait
+SKAction.wait(forDuration: 1.0)
 
-//
-SKAction.resize(byWidth: -width, height: -height, duration: sec) // reversible
+/// Resize
+/// Does not resize the physics body attached to the node
+SKAction.resize(byWidth: -width, height: -height, duration: sec)
 
-//
+// Custom code
 let myCustomAction = SKAction.customAction(withDuration: duration) { node, elapsedTime in
     // arbitrary code that runs over a duration
     // `node`, `duration`, and `elapsedTime` are values
