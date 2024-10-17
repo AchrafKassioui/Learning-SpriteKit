@@ -2,8 +2,148 @@
 
 ## To do
 
+- Try this [marching ants shader](https://gist.github.com/nthState/702157a23918643a8ada7ccbcafd8d33)
 - Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
 - Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
+
+## Constraints
+
+```swift
+let rotationConstraint = SKConstraint.zRotation(SKRange(lowerLimit: -.pi/4, upperLimit: .pi/4))
+myNode.constraints = [rotationConstraint]
+ 
+let range = SKRange(lowerLimit: 0.0, upperLimit: 0.0)
+let orientConstraint = SKConstraint.orient(to: targetNode, offset: range)
+myNode.constraints = [orientConstraint]
+```
+
+## Physics Collision
+
+*15 October 2024*
+
+```swift
+class MyScene: SKScene, SKPhysicsContactDelegate {
+    
+    override func didMove(to view: SKView) {
+        //..
+        physicsWorld.contactDelegate = self
+    }
+    
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+    }
+}
+```
+
+The `didBegin` function is called when two physics bodies make contact. To use this function, the scene must conform to the `SKPhysicsContactDelegate` protocol. This means that you need to add `SKPhysicsContactDelegate` to your scene class declaration. Additionally, the scene's `physicsWorld` must have its `contactDelegate` property set to the scene itself, `self`.
+
+Once set up, the `didBegin` method will be called whenever two physics bodies, whose `contactTestBitMask` properties are configured to detect contact, come into contact in the physics simulation. The `SKPhysicsContact` object provides collision details about the bodies that have come into contact.
+
+## UI
+
+*19 June 2024*
+
+Ramblings about UI in SpriteKit:
+
+SpriteKit is designed around an explicit render loop. Explicit render loops are typical of game engines. Mainstream UI toolkits abstract away the render loop. But in reality, computers are clock machines. They do things in ticks. So a game engine like SpriteKit is lower level than a framework like SwiftUI.
+
+Building around an explicit render loop provides power and requires more careful design. You can build almost any UI the platform allows, but it requires significant knowledge, setup, and clarity about your data model.
+
+For example, mainstream UI toolkits have concepts such as two-way binding and view models. In SwiftUI, you could use `Observation` to track changes between your data and your view. But that's one pattern amongst others. You could use something else. You can for example think of an immediate GUI pattern designed for SpriteKit. Or you can have a bunch of if/then in your update function. The question then becomes: how to manage the complexity, and which pattern works best for your own way of thinking and your performance budget.
+
+I'm currently trying both SwiftUI and SpriteKit for UI. I need things such as: one finger rotation (a wheel that you can spin with inertia to control something in the scene), draggable palettes, multi-touch modals (hold A while dragging B to do C), responsive positioning, and other gizmos. I find SwiftUI interesting to quickly iterate on a drag gesture or place a reusable button that calls an action. But SwiftUI can be incredibly frustrating, since it is its own thing. There is no way you can guess which modifier you need, or if there's even one in the first place. It's like learning an ideographic language: you have to learn a ton of arbitrary patterns and assemble arbitrary symbols.
+
+With SpriteKit, you have old schools patterns that you could find in many languages and many platforms. If you want a draggable node, you can subclass SKSpriteNode, handle touch events there, and create instances of that in your scene. The downside is that iteration if slower during the "f**k around and find out" phase of every computing project worth the trouble.
+
+## Observation with SpriteKit
+
+*9 June 2024*
+
+Observation is a data binding framework released in 2023. Here is a code sample to make it work with SpriteKit:
+
+```swift
+import SwiftUI
+import SpriteKit
+
+struct SpriteKitObservationView: View {
+    var myScene = SpriteKitObservationScene()
+    
+    var body: some View {
+        ZStack {
+            SpriteView(scene: myScene)
+                .ignoresSafeArea()
+            VStack {
+                let text = myScene.myDataModel.message
+                if !text.isEmpty {
+                    Text(text)
+                        .foregroundStyle(.white)
+                        .padding(10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(.black.opacity(0.8))
+                                .shadow(color: .black.opacity(0.3), radius: 12, y: 10)
+                        )
+                }
+                Spacer()
+            }
+        }
+    }
+}
+
+#Preview {
+    SpriteKitObservationView()
+}
+
+@Observable
+class MyDataModel {
+    var message: String = ""
+}
+
+class SpriteKitObservationScene: SKScene {
+    
+    var myDataModel = MyDataModel()
+    var sprite = SKSpriteNode()
+    
+    override func didMove(to view: SKView) {
+        size = view.bounds.size
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        backgroundColor = .gray
+        
+        sprite = SKSpriteNode(color: .red, size: CGSize(width: 75, height: 75))
+        addChild(sprite)
+    }
+    
+    func moveSprite(to position: CGPoint) {
+        let moveAction = SKAction.move(to: position, duration: 0.1)
+        moveAction.timingMode = .easeInEaseOut
+        sprite.run(moveAction)
+        let text = "x: \(Int(position.x)), y: \(Int(position.y))"
+        myDataModel.message = text
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let touchLocation = touch.location(in: self)
+            moveSprite(to: touchLocation)
+        }
+    }
+    
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        for touch in touches {
+            let touchLocation = touch.location(in: self)
+            moveSprite(to: touchLocation)
+        }
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        myDataModel.message = ""
+    }
+}
+```
+
+Links:
+
+- [Goodbye Combine, Hello Observation](https://infinum.com/blog/swiftui-observation/), *accessed 9 June 2024*
 
 ## Gestures and SpriteKit
 
@@ -95,7 +235,7 @@ When physics bodies are children of the camera, and when the camera is zoomed in
 - Case 1: a box of size 60x60, child of the scene, not of the camera. There is a physics boundary around the box, that is of size 400x400. When the body falls under gravity, it works fine.
 - Case 2, the same box, but this time it is a child of the camera, and the physics boundary is a child of the camera as well. When the camera is zoomed out 10x, i.e. when its scale is 10, and the body falls under gravity, the box won't rest. It constantly vibrates at its point of contact with the bottom edge of the boundary.
 
-### Links
+Links
 
 - [This StackOveflow](https://stackoverflow.com/a/21417523/420176) post mentions a jiggling behavior with JBox2D when a zoom factor is involved.
 
@@ -134,7 +274,7 @@ We can't use that to modify the frequency or the damping of the spring. You can 
 
 I find that the only way to modify the joint properties is to store the spring joint in a global variable.
 
-### Links:
+Links:
 
 - [iOS 14.4 headers](https://developer.limneos.net/?ios=14.4&framework=PhysicsKit.framework&header=PKPhysicsJointDistance.h)
 - Rob Mayoff on [Stack Overflow.](https://stackoverflow.com/a/32018784/420176)
@@ -178,7 +318,7 @@ Notice the type of the data we work with: they are all SIMD data types. Fields a
 
 Speaking of delta time: [the documentation](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) says that the delta time is the amount of time that has passed since the last time the simulation was executed. This is very interesting: SpriteKit physics engine uses a variable time step. We do not have a fixed-step setting that we can enforce on SpriteKit. On paper, that makes the engine non deterministic. The same setup may lead to different results if the simulation time steps change, for example when the framerate drops (I haven't thoroughly tested that yet). So in theory, by using the `SKFieldForceEvaluator` block and reading the deltaTime value, we should get the last simulation time step, and at least get a peek at how/if it has drifted. I tried doing that with `print(deltaTime)` inside the block, but it made Xcode crash after the console got overwhelmed. Before the crash, I noticed a steady delta time, up until it changed when the framerate dropped in the simulator right before the crash.
 
-### Observations and issues
+Observations and issues:
 
 - Particles are assumed to have a mass of 1 and a charge of 1. See the [SKEmitterNode fieldBitMask](https://developer.apple.com/documentation/spritekit/skemitternode/1398006-fieldbitmask) in the documentation, where it is said that when a particle is inside a field, it behaves as if it has a physics body of mass = 1 and charge 1.
 - When a velocity field is present, it becomes confusing to understand how other fields will behave. Particles become immune to any other field, regardless of the position and region of the velocity field. Physics bodies become immune to all fields. However, if the `isExclusive` property of a velocity field is set to `true`, it will work along other fields as expected, but only on physics bodies, not particles. Note that the strength property of a velocity field has no effect.
@@ -409,7 +549,7 @@ If you write code that changes the position or rotation of objects across time, 
 
 *5 April 2024*
 
-Numerically calculating the position of an object, by applying velocity each delta time, is called [explicit Euler](https://web.archive.org/web/20180823005957/https://gafferongames.com/post/integration_basics/).
+Numerically calculating the position of an object, by applying velocity each delta time, is called [explicit Euler](https://web.archive.org/web/20180823005957/https://gafferongames.com/post/integration_basics/). *Update 16 June 2024*: that is not exactly right. Euler integration is one of many ways to implement equations of motion. Implementing classical physics on a computer means, amongst many other things, mapping the infinite precision of real numbers to the discrete values a computer can handle.
 
 ## Camera and scene anchor point
 
@@ -614,8 +754,9 @@ SpriteKit has built-in methods using Core Image filters for:
 - Applying filters to scene transitions with `SKTransition`. Out of the box, `SKTransition.init(ciFilter:duration:)` accepts filters that require only two image parameters (inputImage, inputTargetImage) and generate a single image (outputImage).
 - Applying filters to textures of type `SKTexture` to produce a new texture. Out of the box, `SKTexture.applying(CIFilter)` accepts filters that require a single inputImage parameter and produce an outputImage parameter.
 
-### Links
+Links
 
+- [How Gaussian Blurs work](https://typefully.com/DanHollick/oZtKyyX)
 - [Creating a custom variable blur filter in Core Image](http://flexmonkey.blogspot.com/2016/04/creating-custom-variable-blur-filter-in.html)
 
 ## Shape nodes
@@ -1105,10 +1246,10 @@ override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     // safety precaution to make sure there was a touch event captured
     guard let touch = touches.first else { return }
     
-    // get touch coordinates relative to the window
-    let location = touch.location(in: nil)
+    // get touch coordinates relative to the SKView
+    let location = touch.location(in: view)
     
-    // get touch coordinates relative to SpriteKit's scene
+    // get touch coordinates relative to the scene
     // make sure the scene is not an optional.
     // You can get touch coordinates relative to any container passed to `in`
     let location = touch.location(in: scene)
@@ -1117,9 +1258,14 @@ override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
 
 *Update 20 March 2024*
 
-For multi-touch handling, here is basic setup. Note that for multi-touch, a guard statement to ensure there is actually a touch is not necessary, since 1) we are interested in all touches, and 2) the loop over the touches ensures that we only process existing touch points.
+For multitouch handling, here is a basic setup. Note that for multi-touch, a guard statement to ensure there is actually a touch is not necessary, since 1) we are interested in all touches, and 2) the loop over the touches ensures that we only process existing touch points.
 
 ```swift
+override func didMove(to view: SKView) {
+    // Enable multitouch handling on the view
+    view.isMultipleTouchEnabled = true
+}
+
 override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
     for touch in touches {
         // process this particular touch point
@@ -1222,7 +1368,7 @@ https://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_sampling_/_full-scene_
 
 ## Setup with SwiftUI
 
-*Updated 16 March 2024*
+*Updated 16 June 2024*
 
 Minimal boilerplate code to display a SpriteKit scene and preview it inside Xcode 15+ using SwiftUI:
 
@@ -1230,22 +1376,36 @@ Minimal boilerplate code to display a SpriteKit scene and preview it inside Xcod
 import SwiftUI
 import SpriteKit
 
-// SwiftUI
+// MARK: - SwiftUI
 struct ContentView: View {
     var myScene = MyScene()
     
     var body: some View {
         SpriteView(scene: myScene)
+        /// You can add SwiftUI view modifiers here
     }
 }
 
+/// Preview with Xcode live canvas
 #Preview {
     ContentView()
 }
 
-// SpriteKit
+// MARK: - SpriteKit
 class MyScene: SKScene {
-    
+    override func didMove(to view: SKView) {
+        /// basic configuration
+        size = view.bounds.size
+        scaleMode = .resizeFill
+        backgroundColor = .gray
+        
+        /// place the origin of the scene at the center of the view
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
+
+        /// create a sprite
+        let sprite = SKSpriteNode(color: .systemYellow, size: CGSize(width: 60, height: 60))
+        addChild(sprite)
+    }
 }
 ```
 
@@ -1502,14 +1662,15 @@ frame.midX
 frame.midY
 ```
 
-## Physics
+## Physics Properties
 
 ```swift
-// scene properties. Declare in init()
-myScene.physicsWorld.gravity = CGVector(dx: 0, dy: -9.8) // set gravity
-myScene.physicsBody = SKPhysicsBody(edgeLoopFrom: scene.frame) // bodies collide with the edges of the scene
+// physicsWorld properties. Each scene has one physics world. physicsWorld is a property of scene. We could write `scene.physicsWorld` or `self.physicsWorld` inside `didMove`.
+physicsWorld.gravity = CGVector(dx: 0, dy: -9.8) // set gravity
+physicsBody = SKPhysicsBody(edgeLoopFrom: scene.frame) // setup a physical boundary around the scene, using its defined size
 
-myNode.physicsBody = SKPhysicsBody()
+// physicsBody properties
+myNode.physicsBody = SKPhysicsBody(/*..*/) // set up a physics body
 myNode.physicsBody!.restitution = 0.2 // default, bounciness, [0, 1]
 myNode.physicsBody!.friction = 0.2 // default, roughness, [0, 1]
 myNode.physicsBody!.density = 1.0 // default, kg/m2
@@ -1533,14 +1694,6 @@ compound.physicsBody = SKPhysicsBody(bodies: bodies) // Creates a physics body t
 // physics forces
 myNode.physicsBody?.applyImpulse(CGVector(dx: 10, dy: 0)) // N/s
 myNode.physicsBody?.applyForce(CGVector(dx: 10, dy: 0)) // N/s, acceleration is applied every simulation step
-
-// constraints
-let rotationConstraint = SKConstraint.zRotation(SKRange(lowerLimit: -.pi/4, upperLimit: .pi/4))
-myNode.constraints = [rotationConstraint]
-
-let range = SKRange(lowerLimit: 0.0, upperLimit: 0.0)
-let orientConstraint = SKConstraint.orient(to: targetNode, offset: range)
-myNode.constraints = [orientConstraint]
 
 // spring joint
 let spring = SKPhysicsJointSpring.joint(
