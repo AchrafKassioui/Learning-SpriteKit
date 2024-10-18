@@ -1,10 +1,53 @@
 # Learning SpriteKit
 
-## To do
+## SpriteKit and Swift 6
 
-- Try this [marching ants shader](https://gist.github.com/nthState/702157a23918643a8ada7ccbcafd8d33)
-- Could we use `SKTexture(rect:in:)` to create a multi-body physics compound from the texture of a label node? Idea while watching [Apple's SpriteKit introduction video](https://devstreaming-cdn.apple.com/videos/wwdc/2013/502xex3x2iwfiaeglpjw0mh54u/502/502-HD.mov), 15:15, *12 April 2024*
-- Write about `anchorPoint` for `SKSpriteNode` and look up `usesMipmaps`. *15 March 2024*
+*18 October 2024*
+
+Swift 6 introduces stricter rules on concurrency and thread safety. Code that ran with previous versions Swift will now require additional clarifications from the programmer.
+
+SpriteKit being a game engine, many of its method must run on the main thread to ensure UI responsiveness. The main thread is referred to as "main actor". `@MainActor` ensures that tasks involving UI updates, like creating or interacting with `SKNode`, run on the main thread. This is essential because all UI operations must remain responsive and synchronized with the main thread. Tasks that can be performed off the main thread in parallel to UI tasks are done with `async` functions.
+
+Not all SpriteKit methods must run on the main thread. Only methods that inherit from a `@MainActor` type do. For example, inside an `async` function, we can use `SKTexture` to asynchronously return a SpriteKit texture once it's ready after some background processing. We can also define an `SKAction`. But we can not create a node, since `SKNode` inherits from `UIResponder`, which is `@MainActor`.
+
+Here are SpriteKit code samples to try with Swift 6:
+
+```swift
+import SpriteKit
+
+// This is OK
+func myBackgroundMethod() async {
+    let action = SKAction.move(by: CGVector(dx: 100, dy: 100), duration: 1)
+}
+```
+```swift
+import SpriteKit
+
+// This is NOT OK
+func myBackgroundMethod() async {
+    let action = SKAction.move(by: CGVector(dx: 100, dy: 100), duration: 1)
+    let sprite = SKSpriteNode(color: .yellow, size: CGSize(width: 100, height: 100)) // Error on this line
+}
+```
+```swift
+import SpriteKit
+
+// This is still NOT OK, even if I removed the async
+func myBackgroundMethod() {
+    let action = SKAction.move(by: CGVector(dx: 100, dy: 100), duration: 1)
+    let sprite = SKSpriteNode(color: .yellow, size: CGSize(width: 100, height: 100)) // Error on this line
+}
+```
+```swift
+import SpriteKit
+
+// This is OK, because now I explicitly say that this top-level function is main actor
+@MainActor func myBackgroundMethod() {
+    let action = SKAction.move(by: CGVector(dx: 100, dy: 100), duration: 1)
+    let sprite = SKSpriteNode(color: .yellow, size: CGSize(width: 100, height: 100))
+    sprite.run(action) // Now we can run the action
+}
+```
 
 ## Constraints
 
