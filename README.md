@@ -1,5 +1,63 @@
 # Learning SpriteKit
 
+## Compound Physics Bodies
+
+*5 November 2024*
+
+Using `SKPhysicsBody(bodies: [SKPhysicsBody])`, you can create a single compound physics body made of multiple bodies. However, each included body in the array will be centered around the origin of the node to which the compound body is attached. This means you can’t automatically retain the spatial layout of visual nodes when combining their physics bodies into a compound.
+
+To position individual physics bodies within a compound, you can use the `center` parameter in specific SKPhysicsBody initializers. For example:
+
+```swift
+let sprite = SKSpriteNode(color: .black, size: CGSize(width: 10, height: 200))
+sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
+
+let shape = SKShapeNode(rectOf: CGSize(width: 60, height: 30))
+shape.position.y = 100 // Visual positioning only; doesn't affect physics body position
+shape.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 160, height: 30), center: CGPoint(x: 0, y: 100)) // Center parameter positions the physics body within the compound
+
+let compoundBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physicsBody!])
+let compound = SKSpriteNode(color: .systemRed, size: CGSize(width: 50, height: 250))
+compound.physicsBody = compoundBody
+addChild(compound)
+```
+
+However, note that not all SKPhysicsBody initializers support a center parameter. For instance, `SKPhysicsBody(texture:size:)` lacks this parameter, meaning any body created from a texture will be centered in the compound without an offset option.
+
+## SKSceneDelegate
+
+*2 November 2024*
+
+Here is a boilerplate to setup a separate location in your code (a delegate) where you can call SpriteKit game loop methods:
+
+```swift
+// Your SKScene subclass
+class MyScene: SKScene {
+    // Create an instance of your delegate class
+    let sceneDelegate = MySceneDelegate()
+    
+    override func didMove(to view: SKView) {
+        // ...
+        // Assign that instance as the delegate for your scene
+        self.delegate = sceneDelegate
+    }
+}
+
+// Your scene delegate inherits from NSObject, and conforms to the SKSceneDelegate protocol
+class MySceneDelegate: NSObject, SKSceneDelegate {
+    // Now you can call SpriteKit game loop methods, like `update`
+    func update(_ currentTime: TimeInterval, for scene: SKScene) {
+        print("Updating")
+    }
+    // Or `didSimulatePhysics`
+    func didSimulatePhysics(for scene: SKScene) {
+        print("Has simulated physics")
+    }
+}
+```
+
+Note that once you set up a delegate that executes the game loop methods of SpriteKit, those methods won't be called inside your SKScene subclass.
+
 ## SpriteKit and Swift 6
 
 *18 October 2024*
@@ -63,6 +121,8 @@ myNode.constraints = [orientConstraint]
 ## Physics Collision
 
 *15 October 2024*
+
+Boilerplate for setting up collision detection:
 
 ```swift
 class MyScene: SKScene, SKPhysicsContactDelegate {
@@ -235,7 +295,7 @@ SpriteView(scene: myScene)
 
 Then all touch events are delivered to the scene.
 
-## Physics scales
+## Physics Scales
 
 *28 May 2024*
 
@@ -368,7 +428,7 @@ Observations and issues:
 - Setting up a custom field to simulate a velocity field only work if the returned velocity isn't zero.
 - Rotating a particle emitter `SKEmitterNode` with the `zRotation` property mess up its interaction with physics fields. The physics field behave as if the particle emitter has not rotated. In order to rotate a particle emitter, its `emissionAngle` should be changed instead of its `zRotation`.
 
-## Documentation little gems
+## Documentation Gems
 
 *6 May 2024*
 
@@ -413,7 +473,7 @@ In [SKTileMapNode](https://developer.apple.com/documentation/spritekit/sktilemap
 
 [SKFieldNode customField](https://developer.apple.com/documentation/spritekit/skfieldnode/1519710-customfield) documentation. In SpriteKit, 1m = 150 points.
 
-## Custom field node
+## Custom SKFieldNode
 
 *26 April 2024*
 
@@ -439,25 +499,6 @@ SIMD3<Float>(0.0, -0.006201601, 0.0)
 SIMD3<Float>(0.0, -0.018599639, 0.0)
 SIMD3<Float>(0.0, -0.037188955, 0.0)
 ```
-
-## First experiments with shaders
-
-*21 April 2024*
-
-Comment for Discord:
-
-Yes! Notice this very interesting comment in Apple Documentation, about the `shader` property:
-> The default value is nil, which means the default behavior for sprite rendering is performed. SpriteKit implements many sprite features using a default shader, such as:
-> - Animations on alpha.
-> - SKTexture filteringMode.
-> - Light from SKLightNode.
-> If you supply a custom value for shader, your custom shader overrides the default shader which neutralizes the default features. It is the responsibility of your custom shader to implement any of the features your sprites require.
-
-As usual with SpriteKit, you have to use it and explore it first before understanding the documentation. That bit from Apple is illuminating. My understanding is all rendering is done with shaders. Properties like `filteringMode` are in fact shortcuts for a setting in the default shader that SpriteKit's renderer applies on sprite nodes.
-
-So if we want custom shading, 
-
-https://developer.apple.com/documentation/spritekit/skspritenode/1519714-shader
 
 ## contentMode
 
@@ -1891,6 +1932,18 @@ if myNode.frame.contains(touchLocation) {
 ---
 
 ## Code samples
+
+```swift
+func generateRandomArray() -> [CGFloat] {
+    // Random array length between 2 and 15
+    let count = Int.random(in: 2...15)
+    // Random array values between 1 and 150
+    return (0..<count).map { _ in CGFloat(Int.random(in: 1...150)) }
+}
+
+// Using the random generator above, and running the method below in a update loop, we get an interesting scintillating effect on the dashed stroke of a shape.
+shape.path = SKShapeNode(rectOf: rectangle).path?.copy(dashingWithPhase: 0, lengths: generateRandomCGFloatArray())
+```
 
 ```swift
 // Continuously rotate a node
