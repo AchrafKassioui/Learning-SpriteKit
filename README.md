@@ -504,7 +504,7 @@ SIMD3<Float>(0.0, -0.037188955, 0.0)
 
 *18 April 2024*
 
-I found a little gem for SpriteKit views: you know how SpriteKit stretches and scales the view in an ugly way when you rotate your device? (first video) You can change that behavior using the `contentMode` property of a UIKit view.
+A useful find for SpriteKit views: you know how SpriteKit stretches and scales the view in an ugly way when you rotate your device? (first video) You can change that behavior using the `contentMode` property of a UIKit view.
 
 By default, `SKView.contentMode` is set to `.scaleToFill`, which produces the stretch and scale look. If we use the `.center` mode instead, we get a far better looking behavior in my view (second video). Ideally, we should set contentMode to `.redraw` to force the view to redraw its content according to the current size, without messing with the proportions. But `.redraw` doesn't seem to work on SKView. 
 
@@ -514,7 +514,7 @@ https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/7614cac4-3bb
 
 https://github.com/AchrafKassioui/Learning-SpriteKit/assets/1216689/ed6b0dca-abf7-4a09-8e1a-e595acc9012c
 
-## SpriteKit is low level
+## SpriteKit is Low Level
 
 *16 April 2024*
 
@@ -526,7 +526,7 @@ When working with SpriteKit, you'll quickly realize that SpriteKit doesn't tell 
 
 An interesting example I tested recently is a macOS app called [Euler VS Pro](https://www.eulervs.com). Euler Visual Synthesizer uses SpriteKit to visualize shapes...in 3D! The app itself is made with AppKit, SpriteKit is used as the renderer, and the 3D projections are taken care of inside the app's own logic, [using simd vector operations](https://discord.com/channels/1119028615733067808/1119028616844562463/1228520361285648465) on the CPU.
 
-## SpriteKit original team
+## SpriteKit People
 
 *9 April 2024, updated 13 May 2024*
 
@@ -537,7 +537,7 @@ Below is a list of people from Apple who were involved with the development of S
 - [Jacques Gasselin de Richebourg](https://www.linkedin.com/in/jacques-gasselin-de-richebourg-3b8924108/)
 - [Norman Wang](https://www.linkedin.com/in/normanwang/), from [session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov), WWDC 2014.
 
-## View properties
+## View Properties
 
 *8 April 2024*
 
@@ -555,7 +555,7 @@ override func didMove(to view: SKView) {
     view.layer.borderColor = SKColor.red.cgColor
 ```
 
-## Texture filtering
+## Texture Filtering
 
 *27 March 2024*
 
@@ -580,7 +580,7 @@ In the broader context of graphical authoring tools, it's interesting to pay att
 
 However, when you zoom in, these programs tends to disable smoothing, and they show you a representation of the pixels grid. This helps evaluate bitmap data as it is defined at the pixel level.
 
-## Watch out
+## Watch Out
 
 *26 March 2024*
 
@@ -623,11 +623,11 @@ Examples: SKLabelNode with non contiguous characters, SKTexture with non contigu
 
 Changing the anchor point of a sprite node does not reposition the physics body to follow the visual texture.
 
-## Physics vs manual 
+## Physical vs Manual Positioning
 
 *25 March 2024*
 
-SpriteKit physics engine changes the position and zRotation of nodes over time. The rate and direction at which it changes them is what is stored in the velocity and angular velocity properties. By combing that information with other physical informations, such as friction and rules of change, the physics engine calculates new positons and rotations and apply them to objects.
+SpriteKit physics engine changes the position and zRotation of nodes over time. The rate and direction at which it changes them is what is stored in the velocity and angular velocity properties. By combing that information with other physical informations, such as friction and rules of change, the physics engine calculates new positions and rotations and apply them to objects.
 
 If you write code that changes the position or rotation of objects across time, for example through an SKAction or inside the update function, you are essentially writing your own physics engine, with your own rules.
 
@@ -635,7 +635,7 @@ If you write code that changes the position or rotation of objects across time, 
 
 Numerically calculating the position of an object, by applying velocity each delta time, is called [explicit Euler](https://web.archive.org/web/20180823005957/https://gafferongames.com/post/integration_basics/). *Update 16 June 2024*: that is not exactly right. Euler integration is one of many ways to implement equations of motion. Implementing classical physics on a computer means, amongst many other things, mapping the infinite precision of real numbers to the discrete values a computer can handle.
 
-## Camera and scene anchor point
+## Camera and Scene Anchor Point
 
 *19 March 2024*
 
@@ -645,7 +645,7 @@ If you set the anchor point of the scene to (x: 0.5, y: 0.5), the origin of the 
 
 However, if you add a camera to the scene, the scene's origin will be positioned at the center of the camera view, regardless of the scene's anchor point—unless you reposition the camera, that is. So when the scene has a camera, the anchor point is ignored.
 
-## Apple documentation errors
+## Apple Documentation Mistakes
 
 *28 April 2024*
 
@@ -653,11 +653,13 @@ The typos in the comments inside `SKConstraint` header file are pretty funny!
 
 <img src="Screenshots/SKConstraint header file typos.png" alt="SKConstraint header file typos" style="width:100%;" />
 
-*19 March 2024*
+*19 March 2024, updated 6 November 2024*
 
-The official documentation of SpriteKit is a must-read but it is unfortunately lacking. Some of it is actually false. Here are examples:
+[SpriteKit documentation](https://developer.apple.com/documentation/spritekit) is a must-read although very terse. However, bits of it are false or outdated. Here are examples:
 
-- `lineLength`: [Apple says](https://developer.apple.com/documentation/spritekit/skshapenode/1520398-linelength) that we can set values to that property. But in practice, this is a get only property. We can not use it to animate the drawing of a path.
+- [`lineLength`](https://developer.apple.com/documentation/spritekit/skshapenode/1520398-linelength) : Apple says that we can set values to that property. But in practice, this is a get only property. We cannot use it to animate the drawing of a path.
+- In [Shaping a Physics Body to Match a Node's Graphics](https://developer.apple.com/documentation/spritekit/skphysicsbody/shaping_a_physics_body_to_match_a_node_s_graphics), we read "a path-based polygon is the least efficient shape", but in WWDC 2014 [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov) at 37:12, compound and texture-based physics bodies are marked as more costly.<img src="Screenshots/SpriteKit - PhysicsBody Shapes Cost.png" alt="SpriteKit - PhysicsBody Shapes Cost" />
+- [`particleAction`](https://developer.apple.com/documentation/spritekit/skemitternode/1397970-particleaction) does not work.
 
 ## Core Graphics and SpriteKit
 
@@ -751,7 +753,7 @@ In both cases, we get a sprite node, i.e. a node that draws a bitmap image. This
 
 Mind you that Core Graphics is a framework optimized for quality rather than performance. It is not meant to produce images 60 or 120 times per second.
 
-## Core Image filters in SpriteKit
+## Core Image Filters in SpriteKit
 
 *5 June 2024*
 
@@ -843,7 +845,7 @@ Links
 - [How Gaussian Blurs work](https://typefully.com/DanHollick/oZtKyyX)
 - [Creating a custom variable blur filter in Core Image](http://flexmonkey.blogspot.com/2016/04/creating-custom-variable-blur-filter-in.html)
 
-## Shape nodes
+## ShapeNodes
 
 *14 March 2024*
 
@@ -910,7 +912,7 @@ let shape = SKShapeNode()
 shape.path = path
 ```
 
-## Selection and traversal
+## Selection and Traversal
 
 *14 March 2024*
 
@@ -957,7 +959,27 @@ if let myNode = childNode(withName: "//my-node") {
 }
 ```
 
-## Manipulating the scene graph
+## Manipulating the Scene Graph
+
+*6 November 2024*
+
+```swift
+// Get the scene coordinates of a nested node.
+func getPositionInScene(_ node: SKNode) {
+    // We need a reference to the scene
+    guard let scene = node.scene else { return }
+    if let nodeToLocate = scene.childNode(withName: "//nested") {
+        if let parent = nodeToLocate.parent {
+            // We use convert(_:from:)
+            let positionInScene = scene.convert(nodeToLocate.position, from: parent)
+            print("") // Print an empty line
+            print("\(nodeToLocate.name ?? "") parent is \(parent)")
+            print("\(nodeToLocate.name ?? "") position in parent \(nodeToLocate.position)")
+            print("\(nodeToLocate.name ?? "") position in scene \(positionInScene)")
+        }
+    }
+}
+```
 
 *14 March 2024*
 
@@ -967,7 +989,17 @@ if let myNode = childNode(withName: "//my-node") {
 nodeToMove.move(toParent: self)
 ```
 
-## Styling text
+*12 March 2024*
+
+For any two nodes, you can center one relative to another with:
+
+```swift
+nodeToCenter.position = CGPoint(x: referenceNode.frame.midX, y: referenceNode.frame.midY)
+```
+
+There are special cases where a node will be automatically centered. If your node to center has a parent, and if the parent has a property of `anchorNode`, such as `SKScene` and `SKSpriteNode`, then any child node of those with position ``CGPoint(x: 0, y: 0)` are automatically centered relative to their parent node.
+
+## Styling Text
 
 *13 March 2024*
 
@@ -1020,7 +1052,7 @@ addChild(label)
 
 *13 March 2024*
 
-Out of the box, you can print the fonts that will work with SpriteKit with this code:
+You can print the fonts that will work with SpriteKit with this code:
 
 ```swift
 for family in UIFont.familyNames.sorted() {
@@ -1029,96 +1061,16 @@ for family in UIFont.familyNames.sorted() {
 }
 ```
 
-Here is what I get on my Mac:
+You'll get a list like this:
 
 ```swift
 Family: Academy Engraved LET Font names: ["AcademyEngravedLetPlain"]
 Family: Al Nile Font names: ["AlNile", "AlNile-Bold"]
 Family: American Typewriter Font names: ["AmericanTypewriter", "AmericanTypewriter-Light", "AmericanTypewriter-Semibold", "AmericanTypewriter-Bold", "AmericanTypewriter-Condensed", "AmericanTypewriter-CondensedLight", "AmericanTypewriter-CondensedBold"]
-Family: Apple Color Emoji Font names: ["AppleColorEmoji"]
-Family: Apple SD Gothic Neo Font names: ["AppleSDGothicNeo-Regular", "AppleSDGothicNeo-Thin", "AppleSDGothicNeo-UltraLight", "AppleSDGothicNeo-Light", "AppleSDGothicNeo-Medium", "AppleSDGothicNeo-SemiBold", "AppleSDGothicNeo-Bold"]
-Family: Apple Symbols Font names: ["AppleSymbols"]
-Family: Arial Font names: ["ArialMT", "Arial-ItalicMT", "Arial-BoldMT", "Arial-BoldItalicMT"]
-Family: Arial Hebrew Font names: ["ArialHebrew", "ArialHebrew-Light", "ArialHebrew-Bold"]
-Family: Arial Rounded MT Bold Font names: ["ArialRoundedMTBold"]
-Family: Avenir Font names: ["Avenir-Book", "Avenir-Roman", "Avenir-BookOblique", "Avenir-Oblique", "Avenir-Light", "Avenir-LightOblique", "Avenir-Medium", "Avenir-MediumOblique", "Avenir-Heavy", "Avenir-HeavyOblique", "Avenir-Black", "Avenir-BlackOblique"]
-Family: Avenir Next Font names: ["AvenirNext-Regular", "AvenirNext-Italic", "AvenirNext-UltraLight", "AvenirNext-UltraLightItalic", "AvenirNext-Medium", "AvenirNext-MediumItalic", "AvenirNext-DemiBold", "AvenirNext-DemiBoldItalic", "AvenirNext-Bold", "AvenirNext-BoldItalic", "AvenirNext-Heavy", "AvenirNext-HeavyItalic"]
-Family: Avenir Next Condensed Font names: ["AvenirNextCondensed-Regular", "AvenirNextCondensed-Italic", "AvenirNextCondensed-UltraLight", "AvenirNextCondensed-UltraLightItalic", "AvenirNextCondensed-Medium", "AvenirNextCondensed-MediumItalic", "AvenirNextCondensed-DemiBold", "AvenirNextCondensed-DemiBoldItalic", "AvenirNextCondensed-Bold", "AvenirNextCondensed-BoldItalic", "AvenirNextCondensed-Heavy", "AvenirNextCondensed-HeavyItalic"]
-Family: Baskerville Font names: ["Baskerville", "Baskerville-Italic", "Baskerville-SemiBold", "Baskerville-SemiBoldItalic", "Baskerville-Bold", "Baskerville-BoldItalic"]
-Family: Bodoni 72 Font names: ["BodoniSvtyTwoITCTT-Book", "BodoniSvtyTwoITCTT-BookIta", "BodoniSvtyTwoITCTT-Bold"]
-Family: Bodoni 72 Oldstyle Font names: ["BodoniSvtyTwoOSITCTT-Book", "BodoniSvtyTwoOSITCTT-BookIt", "BodoniSvtyTwoOSITCTT-Bold"]
-Family: Bodoni 72 Smallcaps Font names: ["BodoniSvtyTwoSCITCTT-Book"]
-Family: Bodoni Ornaments Font names: ["BodoniOrnamentsITCTT"]
-Family: Bradley Hand Font names: ["BradleyHandITCTT-Bold"]
-Family: Chalkboard SE Font names: ["ChalkboardSE-Regular", "ChalkboardSE-Light", "ChalkboardSE-Bold"]
-Family: Chalkduster Font names: ["Chalkduster"]
-Family: Charter Font names: ["Charter-Roman", "Charter-Italic", "Charter-Bold", "Charter-BoldItalic", "Charter-Black", "Charter-BlackItalic"]
-Family: Cochin Font names: ["Cochin", "Cochin-Italic", "Cochin-Bold", "Cochin-BoldItalic"]
-Family: Copperplate Font names: ["Copperplate", "Copperplate-Light", "Copperplate-Bold"]
-Family: Courier New Font names: ["CourierNewPSMT", "CourierNewPS-ItalicMT", "CourierNewPS-BoldMT", "CourierNewPS-BoldItalicMT"]
-Family: DIN Alternate Font names: ["DINAlternate-Bold"]
-Family: DIN Condensed Font names: ["DINCondensed-Bold"]
-Family: Damascus Font names: ["Damascus", "DamascusLight", "DamascusMedium", "DamascusSemiBold", "DamascusBold"]
-Family: Devanagari Sangam MN Font names: ["DevanagariSangamMN", "DevanagariSangamMN-Bold"]
-Family: Didot Font names: ["Didot", "Didot-Italic", "Didot-Bold"]
-Family: Euphemia UCAS Font names: ["EuphemiaUCAS", "EuphemiaUCAS-Italic", "EuphemiaUCAS-Bold"]
-Family: Farah Font names: ["Farah"]
-Family: Futura Font names: ["Futura-Medium", "Futura-MediumItalic", "Futura-Bold", "Futura-CondensedMedium", "Futura-CondensedExtraBold"]
-Family: Galvji Font names: ["Galvji", "Galvji-Bold"]
-Family: Geeza Pro Font names: ["GeezaPro", "GeezaPro-Bold"]
-Family: Georgia Font names: ["Georgia", "Georgia-Italic", "Georgia-Bold", "Georgia-BoldItalic"]
-Family: Gill Sans Font names: ["GillSans", "GillSans-Italic", "GillSans-Light", "GillSans-LightItalic", "GillSans-SemiBold", "GillSans-SemiBoldItalic", "GillSans-Bold", "GillSans-BoldItalic", "GillSans-UltraBold"]
-Family: Grantha Sangam MN Font names: ["GranthaSangamMN-Regular", "GranthaSangamMN-Bold"]
-Family: Helvetica Font names: ["Helvetica", "Helvetica-Oblique", "Helvetica-Light", "Helvetica-LightOblique", "Helvetica-Bold", "Helvetica-BoldOblique"]
-Family: Helvetica Neue Font names: ["HelveticaNeue", "HelveticaNeue-Italic", "HelveticaNeue-UltraLight", "HelveticaNeue-UltraLightItalic", "HelveticaNeue-Thin", "HelveticaNeue-ThinItalic", "HelveticaNeue-Light", "HelveticaNeue-LightItalic", "HelveticaNeue-Medium", "HelveticaNeue-MediumItalic", "HelveticaNeue-Bold", "HelveticaNeue-BoldItalic", "HelveticaNeue-CondensedBold", "HelveticaNeue-CondensedBlack"]
-Family: Hiragino Maru Gothic ProN Font names: ["HiraMaruProN-W4"]
-Family: Hiragino Mincho ProN Font names: ["HiraMinProN-W3", "HiraMinProN-W6"]
-Family: Hiragino Sans Font names: ["HiraginoSans-W3", "HiraginoSans-W5", "HiraginoSans-W6", "HiraginoSans-W7", "HiraginoSans-W8"]
-Family: Hoefler Text Font names: ["HoeflerText-Regular", "HoeflerText-Italic", "HoeflerText-Black", "HoeflerText-BlackItalic"]
-Family: Impact Font names: ["Impact"]
-Family: Kailasa Font names: ["Kailasa", "Kailasa-Bold"]
-Family: Kefa Font names: ["Kefa-Regular"]
-Family: Khmer Sangam MN Font names: ["KhmerSangamMN"]
-Family: Kohinoor Bangla Font names: ["KohinoorBangla-Regular", "KohinoorBangla-Light", "KohinoorBangla-Semibold"]
-Family: Kohinoor Devanagari Font names: ["KohinoorDevanagari-Regular", "KohinoorDevanagari-Light", "KohinoorDevanagari-Semibold"]
-Family: Kohinoor Gujarati Font names: ["KohinoorGujarati-Regular", "KohinoorGujarati-Light", "KohinoorGujarati-Bold"]
-Family: Kohinoor Telugu Font names: ["KohinoorTelugu-Regular", "KohinoorTelugu-Light", "KohinoorTelugu-Medium"]
-Family: Lao Sangam MN Font names: ["LaoSangamMN"]
-Family: Malayalam Sangam MN Font names: ["MalayalamSangamMN", "MalayalamSangamMN-Bold"]
-Family: Marker Felt Font names: ["MarkerFelt-Thin", "MarkerFelt-Wide"]
-Family: Menlo Font names: ["Menlo-Regular", "Menlo-Italic", "Menlo-Bold", "Menlo-BoldItalic"]
-Family: Mishafi Font names: ["DiwanMishafi"]
-Family: Mukta Mahee Font names: ["MuktaMahee-Regular", "MuktaMahee-Light", "MuktaMahee-Bold"]
-Family: Myanmar Sangam MN Font names: ["MyanmarSangamMN", "MyanmarSangamMN-Bold"]
-Family: Noteworthy Font names: ["Noteworthy-Light", "Noteworthy-Bold"]
-Family: Noto Nastaliq Urdu Font names: ["NotoNastaliqUrdu", "NotoNastaliqUrdu-Bold"]
-Family: Noto Sans Kannada Font names: ["NotoSansKannada-Regular", "NotoSansKannada-Light", "NotoSansKannada-Bold"]
-Family: Noto Sans Myanmar Font names: ["NotoSansMyanmar-Regular", "NotoSansMyanmar-Light", "NotoSansMyanmar-Bold"]
-Family: Noto Sans Oriya Font names: ["NotoSansOriya", "NotoSansOriya-Bold"]
-Family: Optima Font names: ["Optima-Regular", "Optima-Italic", "Optima-Bold", "Optima-BoldItalic", "Optima-ExtraBlack"]
-Family: Palatino Font names: ["Palatino-Roman", "Palatino-Italic", "Palatino-Bold", "Palatino-BoldItalic"]
-Family: Papyrus Font names: ["Papyrus", "Papyrus-Condensed"]
-Family: Party LET Font names: ["PartyLetPlain"]
-Family: PingFang HK Font names: ["PingFangHK-Regular", "PingFangHK-Ultralight", "PingFangHK-Thin", "PingFangHK-Light", "PingFangHK-Medium", "PingFangHK-Semibold"]
-Family: PingFang SC Font names: ["PingFangSC-Regular", "PingFangSC-Ultralight", "PingFangSC-Thin", "PingFangSC-Light", "PingFangSC-Medium", "PingFangSC-Semibold"]
-Family: PingFang TC Font names: ["PingFangTC-Regular", "PingFangTC-Ultralight", "PingFangTC-Thin", "PingFangTC-Light", "PingFangTC-Medium", "PingFangTC-Semibold"]
-Family: Rockwell Font names: ["Rockwell-Regular", "Rockwell-Italic", "Rockwell-Bold", "Rockwell-BoldItalic"]
-Family: STIX Two Math Font names: ["STIXTwoMath-Regular"]
-Family: STIX Two Text Font names: ["STIXTwoText", "STIXTwoText-Italic", "STIXTwoText_Medium", "STIXTwoText-Italic_Medium-Italic", "STIXTwoText_SemiBold", "STIXTwoText-Italic_SemiBold-Italic", "STIXTwoText_Bold", "STIXTwoText-Italic_Bold-Italic"]
-Family: Savoye LET Font names: ["SavoyeLetPlain"]
-Family: Sinhala Sangam MN Font names: ["SinhalaSangamMN", "SinhalaSangamMN-Bold"]
-Family: Snell Roundhand Font names: ["SnellRoundhand", "SnellRoundhand-Bold", "SnellRoundhand-Black"]
-Family: Symbol Font names: ["Symbol"]
-Family: Tamil Sangam MN Font names: ["TamilSangamMN", "TamilSangamMN-Bold"]
-Family: Thonburi Font names: ["Thonburi", "Thonburi-Light", "Thonburi-Bold"]
-Family: Times New Roman Font names: ["TimesNewRomanPSMT", "TimesNewRomanPS-ItalicMT", "TimesNewRomanPS-BoldMT", "TimesNewRomanPS-BoldItalicMT"]
-Family: Trebuchet MS Font names: ["TrebuchetMS", "TrebuchetMS-Italic", "TrebuchetMS-Bold", "Trebuchet-BoldItalic"]
-Family: Verdana Font names: ["Verdana", "Verdana-Italic", "Verdana-Bold", "Verdana-BoldItalic"]
-Family: Zapf Dingbats Font names: ["ZapfDingbatsITC"]
-Family: Zapfino Font names: ["Zapfino"]
+// ...
 ```
 
-If you have a font in your Font Book that doesn't appear on the list, it won't just work with SpriteKit. You have to explicitly add it to Xcode. Apple [has a page](https://developer.apple.com/documentation/uikit/text_display_and_fonts/adding_a_custom_font_to_your_app#) on how to do that. To clarify further, here are screenshots made with Xcode 15.4. Before making these modifications to the info tab of your project target, make sure to add the font to Xcode. You have to add the font **as a file**, **not as an image** inside Assets.
+If you have a font in your Font Book that doesn't appear on the list, it won't just work with SpriteKit. You have to explicitly add it to Xcode. Apple [has a page](https://developer.apple.com/documentation/uikit/text_display_and_fonts/adding_a_custom_font_to_your_app#) on how to do that. To clarify further, here are screenshots made with Xcode 15.4. Before making these modifications to the info tab of your project target, make sure to add the font to Xcode. You have to add the font **as a file**, **not as an image asset**.
 
 1.
 
@@ -1136,19 +1088,7 @@ If you have a font in your Font Book that doesn't appear on the list, it won't j
 
 <img src="Screenshots/Xcode add font - 4 Add font name.png" alt="Xcode add font - 4 Add font name" />
 
-## Centering a node inside another one
-
-*12 March 2024*
-
-For any two nodes, you can center one relative to another with:
-
-```swift
-nodeToCenter.position = CGPoint(x: referenceNode.frame.midX, y: referenceNode.frame.midY)
-```
-
-There are special cases where a node will be automatically centered. If your node to center has a parent, and if the parent has a property of `anchorNode`, such as `SKScene` and `SKSpriteNode`, then any child node of those with position ``CGPoint(x: 0, y: 0)` are automatically centered relative to their parent node.
-
-## Visualize the frame of a node
+## Visualize the Frame of a Node
 
 *9 March 2024*
 
@@ -1211,23 +1151,21 @@ ChatGPT 4, *accessed 7  March 2024*
 
 [Apple Documentation](https://developer.apple.com/documentation/spritekit/sknode/1483107-zposition), *accessed 7  March 2024*
 
-## Get the texture of a node
+## Get the Texture of a Node
 
 *6 March 2024*
 
-In SpriteKit, you can get a texture from any node, which includes its children. For example, you could define a node using `SKShapeNode`, get the texture of that node, and create a `SKSpriteNode` with the texture.
+In SpriteKit, you can get a texture from any node, which includes its children. For example, you could create a node using `SKShapeNode`, get the texture of that node, and create a `SKSpriteNode` with the texture.
 
-I use that feature to create better physics bodies for nodes such as `SKShapeNode`:
+I use that feature to create texture-based physics bodies for nodes such as `SKShapeNode`. Note that you need a reference to your `SKView` instance, which owns the method:
 
 ```swift
 if let nodeTexture = view.texture(from: myNode) {
-    myNode.physicsBody = SKPhysicsBody(texture: nodeTexture, alphaThreshold: 0.6, size: nodeTexture.size())
-    myNode.physicsBody?.density = 100
-    myNode.physicsBody?.friction = 1
+    myNode.physicsBody = SKPhysicsBody(texture: nodeTexture, size: nodeTexture.size())
 }
 ```
 
-## Marching ants
+## Marching Ants
 
 *6 March 2024*
 
@@ -1271,11 +1209,11 @@ boundingBox.run(repeatForeverAction)
 addChild(boundingBox)
 ```
 
-## 9 parts slicing
+## 9 Parts Slicing
 
 *5 March 2024*
 
-With this, you can scale sprites without distorting them. The idea is that you slice the sprite's texture into 9 parts: a grid of 3x3. Only the central part is stretched vertically and horizontally when the sprite is scaled.
+9-part slicing is a way to scale sprites without distorting the texture. It divides the sprite’s texture into a 3x3 grid, where only the center part stretches when the sprite scales. You set this up using the `centerRect` property of `SKSpriteNode`:
 
 ```swift
 let button = SKSpriteNode(imageNamed: "my_texture@2x")
@@ -1285,41 +1223,32 @@ button.centerRect = CGRect(x: 12.0/28.0,
                            height: 4.0/28.0)
 ```
 
-Once you pass in a value to the `centerRect` property of a sprite node, that sprite node will be sliced. The `CGRect` you pass in is the central rectangle the 3x3 slicing grid. It is positioned relative to the sprite node. Its positioning (x,y) and sizing (width, height) takes values from 0 to 1. Therefore, by convention, you fill the values by dividing your desired target by one size of your texture.
+The `centerRect` property takes a `CGRect` that defines the central area of the 3x3 grid as a fraction of the texture’s size (from 0 to 1). For example, if your texture is 100 points wide, you’d set the x and width of centerRect as desiredValue / 100.
 
-For example, if your texture is 100 points wide and 60 points high, your x and width values will be `desiredValue/100`.
-
-Here's a helper function that gets you that center rectangle given a width and height of the corner, and the sprite node to slice:
+Here’s a helper function to easily set centerRect based on corner widths and heights:
 
 ```swift
-/// Calculates the CGRect for the center part of a 9-slice sprite.
-/// - Parameter cornerWidth: The width of the corner parts
-/// - Parameter cornerHeight: The height of the corner parts
-/// - Parameter sprite: The SKSpriteNode for which to calculate the center rect
-/// - Returns: A CGRect representing the center rectangle for 9-slice scaling
-func setCenterRect(cornerWidth: CGFloat, cornerHeight: CGFloat, sprite: SKSpriteNode) -> CGRect {
-    guard let textureSize = sprite.texture?.size() else {
-        return .zero
-    }
+/// Calculates the center rect for 9-slice scaling.
+/// - Parameters:
+///   - cornerWidth: Width of the corner parts.
+///   - cornerHeight: Height of the corner parts.
+///   - sprite: The SKSpriteNode to slice.
+/// - Returns: A CGRect for the center rectangle.
+func calculateCenterRect(cornerWidth: CGFloat, cornerHeight: CGFloat, sprite: SKSpriteNode) -> CGRect {
+    guard let textureSize = sprite.texture?.size() else { return .zero }
     
-    let totalWidth = textureSize.width
-    let totalHeight = textureSize.height
-    
-    let centerSliceWidth = totalWidth - (cornerWidth * 2)
-    let centerSliceHeight = totalHeight - (cornerHeight * 2)
-    
-    let centerSliceRect = CGRect(x: cornerWidth / totalWidth,
-                                 y: cornerHeight / totalHeight,
-                                 width: centerSliceWidth / totalWidth,
-                                 height: centerSliceHeight / totalHeight)
+    let centerSliceRect = CGRect(x: cornerWidth / textureSize.width,
+                                 y: cornerHeight / textureSize.height,
+                                 width: (textureSize.width - 2 * cornerWidth) / textureSize.width,
+                                 height: (textureSize.height - 2 * cornerHeight) / textureSize.height)
     
     return centerSliceRect
 }
 ```
 
-See [Resizing a Sprite in Nine Parts](https://developer.apple.com/documentation/spritekit/skspritenode/resizing_a_sprite_in_nine_parts) on Apple Documentation.
+You can learn more in Apple’s documentation on [Resizing a Sprite in Nine Parts](https://developer.apple.com/documentation/spritekit/skspritenode/resizing_a_sprite_in_nine_parts).
 
-## Touch events
+## Touch Events
 
 *5 March 2024*
 
@@ -1373,40 +1302,29 @@ override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
 }
 ```
 
-This how to get the touched nodes:
+This is how to get all the touched nodes:
 
 ```swift
-override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    guard let scene = scene else { return }
-
-    for touch in touches {
-        let touchLocation = touch.location(in: scene)
-        let touchedNodes = scene.nodes(at: touchLocation)
-        for node in touchedNodes {
-            // code for every touched node
-        }
+for touch in touches {
+    let touchLocation = touch.location(in: self)
+    let touchedNodes = nodes(at: touchLocation)
+    for node in touchedNodes {
+        print(node)
     }
 }
 ```
 
-Constrain a position within a range:
+This how to get the top most touched node:
 
 ```swift
-override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-    for touch in touches {
-        let touchLocation = touch.location(in: self)
-
-        /// Clamp the values
-        let lowerBound = -100
-        let upperBound = 100
-        let allowedYPosition = max(lowerBound, min(touchLocation.y, upperBound))
-
-        myNode.position.y = allowedYPosition
-    }
+for touch in touches {
+    let touchLocation = touch.location(in: self)
+    let touchedNode = atPoint(touchLocation)
+    print(touchedNode)
 }
 ```
 
-## Multi touch
+## MultiTouch
 
 *5 March 2024*
 
@@ -1424,7 +1342,7 @@ Trivia: on iPhone, it seems that the maximum supported amount of simultaneous to
 
 > In its default configuration, a view receives only the first UITouch object associated with an event, even if more than one finger is touching the view. To receive the additional touches, you must set the view’s isMultipleTouchEnabled property to true.
 
-## SpriteKit text blurriness
+## SpriteKit Text Blurriness
 
 *5 December 2023*
 
@@ -1493,7 +1411,7 @@ class MyScene: SKScene {
 }
 ```
 
-## SpriteView configuration
+## SpriteView Configuration
 
 SpriteKit was made in the era of UIKit. A SpriteKit view, `SKView`, was configured inside a `UIViewController`. With SwiftUI, configuring a SpriteKit view is now done with a configuration object that you pass to SpriteView:
 
@@ -1518,7 +1436,7 @@ In SpriteKit, the view is the real camera. The view is the window through which 
 
 The camera node `SKCameraNode` is a convenience node that transforms all objects in an opposite way relative to the camera, repositioning them into the view, therefore simulating a moving camera. By creating multiple cameras, we can quickly reposition the view into the scene.
 
-## Scene size
+## Scene Size
 
 Most tutorials and resources available on SpriteKit will use a specific size for the scene, and pass it to the initializer method. How should you size your SpriteKit scene? How does scene size affect performance? Will my nodes' position be constrained by the scene size? If a physics body falls under gravity, will it continue to fall indefinitely?
 
