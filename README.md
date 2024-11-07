@@ -4,25 +4,45 @@
 
 *5 November 2024*
 
-Using `SKPhysicsBody(bodies: [SKPhysicsBody])`, you can create a single compound physics body made of multiple bodies. However, each included body in the array will be centered around the origin of the node to which the compound body is attached. This means you can’t automatically retain the spatial layout of visual nodes when combining their physics bodies into a compound.
+Using `SKPhysicsBody(bodies: [SKPhysicsBody])`, we can create a single compound physics body made of multiple bodies. However, each included body in the array will be centered around the origin of the node to which the compound body is attached. This means we can’t automatically retain the spatial layout of visual nodes when combining their physics bodies into a compound.
 
-To position individual physics bodies within a compound, you can use the `center` parameter in specific SKPhysicsBody initializers. For example:
+<img src="Screenshots/SpriteKit - Default Compound Body.png" alt="SpriteKit - Default Compound Body" style="zoom:50%;" />
+
+In the figure above, we see 3 separates nodes at the top of the screen: 2 rectangles and a label. They each have their own physics body. Below on the screen, there is a transparent node with a compound physics body from the bodies of these 3 nodes. Notice how the bodies are centered and do not follow the spatial arrangement of the nodes above.  
+
+To position individual physics bodies within a compound, we can use the `center` parameter in specific SKPhysicsBody initializers. For example:
 
 ```swift
-let sprite = SKSpriteNode(color: .black, size: CGSize(width: 10, height: 200))
-sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
+let sprite = SKSpriteNode(color: fillColor, size: CGSize(width: 10, height: 200))
+sprite.position = CGPoint(x: 0, y: 200)
+sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size, center: sprite.position)
+addChild(sprite)
 
-let shape = SKShapeNode(rectOf: CGSize(width: 60, height: 30))
-shape.position.y = 100 // Visual positioning only; doesn't affect physics body position
-shape.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: 160, height: 30), center: CGPoint(x: 0, y: 100)) // Center parameter positions the physics body within the compound
+let shape = SKSpriteNode(color: fillColor, size: CGSize(width: 60, height: 30))
+shape.position = CGPoint(x: 0, y: 315)
+shape.physicsBody = SKPhysicsBody(rectangleOf: shape.size, center: shape.position)
+addChild(shape)
 
-let compoundBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physicsBody!])
-let compound = SKSpriteNode(color: .systemRed, size: CGSize(width: 50, height: 250))
-compound.physicsBody = compoundBody
+let label = SKLabelNode(text: "Compound")
+label.position = CGPoint(x: 0, y: 80)
+label.fontName = "MenloBold"
+label.fontSize = 24
+label.verticalAlignmentMode = .center
+label.horizontalAlignmentMode = .center
+label.physicsBody = SKPhysicsBody(rectangleOf: label.frame.size, center: label.position)
+addChild(label)
+
+let compound = SKSpriteNode(color: .clear, size: CGSize(width: 50, height: 50))
+compound.position = CGPoint(x: 0, y: -300)
+compound.physicsBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physicsBody!, label.physicsBody!])
 addChild(compound)
 ```
 
-However, note that not all SKPhysicsBody initializers support a center parameter. For instance, `SKPhysicsBody(texture:size:)` lacks this parameter, meaning any body created from a texture will be centered in the compound without an offset option.
+<img src="Screenshots/SpriteKit - Recentered Compound Bodies.png" alt="SpriteKit - Recentered Compound Bodies" style="zoom:50%;" />
+
+Notice the overall shape of the compound body inside the red frame. It now looks like the original visual nodes. The individual physics bodies have been offset relative to their visual node parent.
+
+However, not all SKPhysicsBody initializers can be freely offset like that. Notably, `SKPhysicsBody(texture:size:)` does not have a `center` parameter. So physics bodies created from a texture will be centered in the compound without an offset option.
 
 ## SKSceneDelegate
 
