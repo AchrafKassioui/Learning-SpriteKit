@@ -32,8 +32,6 @@ compound.physicsBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physics
 addChild(compound)
 ```
 
-
-
 <img src="Screenshots/SpriteKit - Default Compound Body.png" alt="SpriteKit - Default Compound Body" style="width:33%;" />
 
 At the top of the screen we see the 3 visual nodes. They each have their own physics body. Below on the screen we 
