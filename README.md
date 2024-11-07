@@ -6,7 +6,7 @@
 
 Using `SKPhysicsBody(bodies: [SKPhysicsBody])`, we can create a single compound physics body made of multiple bodies. However, each included body in the array will be centered around the origin of the node to which the compound body is attached. This means we can’t automatically retain the spatial layout of visual nodes when combining their physics bodies into a compound.
 
-<img src="Screenshots/SpriteKit - Default Compound Body.png" alt="SpriteKit - Default Compound Body" style="zoom:50%;" />
+<img src="Screenshots/SpriteKit - Default Compound Body.png" alt="SpriteKit - Default Compound Body" style="width:50%;" />
 
 In the figure above, we see 3 separates nodes at the top of the screen: 2 rectangles and a label. They each have their own physics body. Below on the screen, there is a transparent node with a compound physics body from the bodies of these 3 nodes. Notice how the bodies are centered and do not follow the spatial arrangement of the nodes above.  
 
@@ -38,7 +38,7 @@ compound.physicsBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physics
 addChild(compound)
 ```
 
-<img src="Screenshots/SpriteKit - Recentered Compound Bodies.png" alt="SpriteKit - Recentered Compound Bodies" style="zoom:50%;" />
+<img src="Screenshots/SpriteKit - Recentered Compound Bodies.png" alt="SpriteKit - Recentered Compound Bodies" style="width:50%;" />
 
 Notice the overall shape of the compound body inside the red frame. It now looks like the original visual nodes. The individual physics bodies have been offset relative to their visual node parent.
 
