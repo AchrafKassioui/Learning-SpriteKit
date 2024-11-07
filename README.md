@@ -51,6 +51,12 @@ Now the overall shape of the compound body looks like the overall shape of the v
 
 Not all SKPhysicsBody initializers can be freely repositioned like that. Specifically, `SKPhysicsBody(texture:size:)` does not have a `center` parameter. So physics bodies created from a texture will be centered in the compound without an offset option.
 
+Moreover, if we rotate one of the visual nodes, we can see that the physics body that is attached to it is rotated, but the same physics body added to the compound body is not. So even with `center` parameter, we could not capture both the position and rotation of the individual physics bodies.
+
+<img src="Screenshots/SpriteKit - Rotated Compound Body.png" alt="SpriteKit - Rotated Compound Body" style="zoom:33%;" />
+
+Note how the physics body of the label node is rotated, but the same body in the compound body is not.
+
 ## SKSceneDelegate
 
 *2 November 2024*
