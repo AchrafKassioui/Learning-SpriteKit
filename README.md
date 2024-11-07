@@ -32,11 +32,9 @@ compound.physicsBody = SKPhysicsBody(bodies: [sprite.physicsBody!, shape.physics
 addChild(compound)
 ```
 
-<img src="Screenshots/SpriteKit - Default Compound Body.png" alt="SpriteKit - Default Compound Body" style="width:33%;" />
+<img src="Screenshots/SpriteKit - Centered Compound Body.png" alt="SpriteKit - Centered Compound Body" style="width:33%;" />
 
-At the top of the screen we see the 3 visual nodes. They each have their own physics body. Below on the screen we 
-
-see the compound body. Notice how the compound bodies are centered and do not follow the spatial arrangement of the original nodes.
+At the top of the screen we see the 3 visual nodes. They each have their own physics body. Below on the screen we see the compound body. Notice how the compound bodies are centered and do not follow the spatial arrangement of the original nodes.
 
 To reposition the physics bodies within a compound, we can use the `center` parameter in specific SKPhysicsBody initializers. For example:
 
@@ -49,9 +47,9 @@ label.physicsBody = SKPhysicsBody(rectangleOf: label.frame.size, center: label.p
 
 <img src="Screenshots/SpriteKit - Recentered Compound Bodies.png" alt="SpriteKit - Recentered Compound Bodies" style="width:33%;" />
 
-Now the overall shape of the compound body looks like the overall shape of the visual nodes. Meanwhile, notice how the physics bodies of the original visual nodes have been offset.
+Now the overall shape of the compound body looks like the overall shape of the visual nodes. Meanwhile, the physics bodies of the original visual nodes have been offset.
 
-Unfortunately, not all SKPhysicsBody initializers can be freely repositioned like that. Notably, `SKPhysicsBody(texture:size:)` does not have a `center` parameter. So physics bodies created from a texture will be centered in the compound without an offset option.
+Not all SKPhysicsBody initializers can be freely repositioned like that. Specifically, `SKPhysicsBody(texture:size:)` does not have a `center` parameter. So physics bodies created from a texture will be centered in the compound without an offset option.
 
 ## SKSceneDelegate
 
