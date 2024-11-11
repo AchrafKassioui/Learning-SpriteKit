@@ -788,6 +788,38 @@ Mind you that Core Graphics is a framework optimized for quality rather than per
 
 ## Core Image Filters in SpriteKit
 
+*9 November 2024*
+
+If we enable Core Image filters on the scene itself, we observe this:
+
+<img src="Screenshots/SpriteKit - Scene Filters OFF.png" alt="SpriteKit - Scene Filters OFF" style="width:33%;" />
+
+<img src="Screenshots/SpriteKit - Scene Filters ON.png" alt="SpriteKit - Scene Filters ON" style="width:33%;" />
+
+```swift
+import SpriteKit
+import CoreImage.CIFilterBuiltins
+
+class BasicECScene: SKScene {
+    override func didMove(to view: SKView) {
+        size = view.bounds.size
+        
+        let camera = SKCameraNode()
+        self.camera = camera
+        addChild(camera)
+        
+        shouldEnableEffects = true
+        let myFilter = CIFilter.pixellate()
+        myFilter.scale = 10
+        filter = myFilter
+    }
+}
+```
+
+The first image is with `shouldEnableEffects = false`, the second image is with `shouldEnableEffects = true`. Notice how the circle is now cropped to the upper right quadrant. Note also that we are using a camera node. When a SpriteKit view uses a camera, the origin of the scene is placed at the middle of the screen instead of the original lower bottom corner of the screen, because we're seeing the scene from the camera's perspective, which is at `CGPoint.zero`. Therefore the positive axises x and y of the scene extend from the middle of the screen toward the right and the top.
+
+It seems that when filters are enabled on the scene itself, SpriteKit renderer limits the visible part to the size of the scene itself, which in this case is the size of the view.
+
 *5 June 2024*
 
 If filters are enabled on the scene and if there is a camera that is zoomed out:
@@ -1970,6 +2002,7 @@ class SpriteKitScene: SKScene {
 
 ## Links & Resources
 
+- 🎬 WWDC 2014 [Session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov) and [Session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov)
 - 🛠️ [SKUtilities2](https://github.com/mredig/SKUtilities2?tab=readme-ov-file), *accessed 8 may 2024*
 - 📝 [Hanging chains with physics joints](http://www.waveworks.de/howto-make-hanging-chains-sprite-kit-physics-joints/), *accessed 31 March 2024*
 - 📐 [SKPhysicsBody Path Generator](http://insyncapp.net/SKPhysicsBodyPathGenerator.html): an old page that generates a CGPath by manually drawing lines over a sprite on the browser. The generated code is in Objective-C with an old syntax, but still interesting to know.
