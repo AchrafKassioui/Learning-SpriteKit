@@ -1,5 +1,30 @@
 # Learning SpriteKit
 
+## SF Symbol
+
+*19 November 2024*
+
+Here is a function that generates a sprite from an SF Symbol:
+
+```swift
+func generateSpriteFromSFSymbol(symbolName: String, color: SKColor, size: CGSize, weight: UIImage.SymbolWeight = .regular) -> SKSpriteNode {
+    let configuration = UIImage.SymbolConfiguration(pointSize: size.width, weight: weight)
+    
+    /// Generate the symbol with the configuration
+    if let sfSymbol = UIImage(systemName: symbolName, withConfiguration: configuration)?.withTintColor(color) {
+        /// Convert the symbol to PNG data and back to a UIImage
+        /// It seems I need this step to apply a color to the generated sprite
+        if let pngData = sfSymbol.pngData(), let image = UIImage(data: pngData) {
+            return SKSpriteNode(texture: SKTexture(image: image), size: size)
+        }
+    }
+    /// If no SF Symbol is found, this is the placeholder sprite we return
+    return SKSpriteNode(color: color, size: size)
+}
+```
+
+I find that using SF Symbol with label nodes either doesn't work or requires a setup I haven't found yet. The function above generates a sprite, typically used for icons based on SF Symbol. We could further customize the sprite by tweaking the configuration object.
+
 ## Compound Physics Bodies
 
 *5 November 2024*
