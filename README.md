@@ -1,5 +1,445 @@
 # Learning SpriteKit
 
+## 120 fps
+
+*9 December 2024*
+
+To enable maximum refresh rate on compatible iPhones for a SpriteKit project, add `CADisableMinimumFrameDurationOnPhone` to the project's property list, and set its value to `true`.
+
+<img src="Screenshots/CADisableMinimumFrameDurationOnPhone.png" alt="CADisableMinimumFrameDurationOnPhone" style="zoom:50%;" />
+
+Then, set the SpriteKit view's `preferredFramesPerSecond` to 120 fps. Example using SwiftUI:
+
+```swift
+struct ContentView: View {
+    var body: some View {
+        SpriteView(
+            scene: MyScene(), // A reference to the SpriteKit scene
+            preferredFramesPerSecond: 120 // Here
+        )
+    }
+}
+```
+
+## SpriteKit Fonts
+
+*30 November 2024*
+
+There are three ways to pick fonts in SpriteKit:
+
+- Use one of the font families natively supported by SpriteKit's `fontFamily` (see list below).
+- Add a font file to your Xcode project, and configure the project's info list accordingly (see the note "Fonts").
+- Use `NSAttributedString` and UIKit, and assign that to the `attributedText` property of `SKLabelNode`.
+
+Here's the list of the fonts that can be natively used with `SKLabelNode`'s `fontFamily` property: 
+
+Font Family: Academy Engraved LET
+    Font: AcademyEngravedLetPlain
+Font Family: Al Nile
+    Font: AlNile
+    Font: AlNile-Bold
+Font Family: American Typewriter
+    Font: AmericanTypewriter
+    Font: AmericanTypewriter-Light
+    Font: AmericanTypewriter-Semibold
+    Font: AmericanTypewriter-Bold
+    Font: AmericanTypewriter-Condensed
+    Font: AmericanTypewriter-CondensedLight
+    Font: AmericanTypewriter-CondensedBold
+Font Family: Apple Color Emoji
+    Font: AppleColorEmoji
+Font Family: Apple SD Gothic Neo
+    Font: AppleSDGothicNeo-Regular
+    Font: AppleSDGothicNeo-Thin
+    Font: AppleSDGothicNeo-UltraLight
+    Font: AppleSDGothicNeo-Light
+    Font: AppleSDGothicNeo-Medium
+    Font: AppleSDGothicNeo-SemiBold
+    Font: AppleSDGothicNeo-Bold
+Font Family: Apple Symbols
+    Font: AppleSymbols
+Font Family: Arial
+    Font: ArialMT
+    Font: Arial-ItalicMT
+    Font: Arial-BoldMT
+    Font: Arial-BoldItalicMT
+Font Family: Arial Hebrew
+    Font: ArialHebrew
+    Font: ArialHebrew-Light
+    Font: ArialHebrew-Bold
+Font Family: Arial Rounded MT Bold
+    Font: ArialRoundedMTBold
+Font Family: Avenir
+    Font: Avenir-Book
+    Font: Avenir-Roman
+    Font: Avenir-BookOblique
+    Font: Avenir-Oblique
+    Font: Avenir-Light
+    Font: Avenir-LightOblique
+    Font: Avenir-Medium
+    Font: Avenir-MediumOblique
+    Font: Avenir-Heavy
+    Font: Avenir-HeavyOblique
+    Font: Avenir-Black
+    Font: Avenir-BlackOblique
+Font Family: Avenir Next
+    Font: AvenirNext-Regular
+    Font: AvenirNext-Italic
+    Font: AvenirNext-UltraLight
+    Font: AvenirNext-UltraLightItalic
+    Font: AvenirNext-Medium
+    Font: AvenirNext-MediumItalic
+    Font: AvenirNext-DemiBold
+    Font: AvenirNext-DemiBoldItalic
+    Font: AvenirNext-Bold
+    Font: AvenirNext-BoldItalic
+    Font: AvenirNext-Heavy
+    Font: AvenirNext-HeavyItalic
+Font Family: Avenir Next Condensed
+    Font: AvenirNextCondensed-Regular
+    Font: AvenirNextCondensed-Italic
+    Font: AvenirNextCondensed-UltraLight
+    Font: AvenirNextCondensed-UltraLightItalic
+    Font: AvenirNextCondensed-Medium
+    Font: AvenirNextCondensed-MediumItalic
+    Font: AvenirNextCondensed-DemiBold
+    Font: AvenirNextCondensed-DemiBoldItalic
+    Font: AvenirNextCondensed-Bold
+    Font: AvenirNextCondensed-BoldItalic
+    Font: AvenirNextCondensed-Heavy
+    Font: AvenirNextCondensed-HeavyItalic
+Font Family: Baskerville
+    Font: Baskerville
+    Font: Baskerville-Italic
+    Font: Baskerville-SemiBold
+    Font: Baskerville-SemiBoldItalic
+    Font: Baskerville-Bold
+    Font: Baskerville-BoldItalic
+Font Family: Bodoni 72
+    Font: BodoniSvtyTwoITCTT-Book
+    Font: BodoniSvtyTwoITCTT-BookIta
+    Font: BodoniSvtyTwoITCTT-Bold
+Font Family: Bodoni 72 Oldstyle
+    Font: BodoniSvtyTwoOSITCTT-Book
+    Font: BodoniSvtyTwoOSITCTT-BookIt
+    Font: BodoniSvtyTwoOSITCTT-Bold
+Font Family: Bodoni 72 Smallcaps
+    Font: BodoniSvtyTwoSCITCTT-Book
+Font Family: Bodoni Ornaments
+    Font: BodoniOrnamentsITCTT
+Font Family: Bradley Hand
+    Font: BradleyHandITCTT-Bold
+Font Family: Chalkboard SE
+    Font: ChalkboardSE-Regular
+    Font: ChalkboardSE-Light
+    Font: ChalkboardSE-Bold
+Font Family: Chalkduster
+    Font: Chalkduster
+Font Family: Charter
+    Font: Charter-Roman
+    Font: Charter-Italic
+    Font: Charter-Bold
+    Font: Charter-BoldItalic
+    Font: Charter-Black
+    Font: Charter-BlackItalic
+Font Family: Cochin
+    Font: Cochin
+    Font: Cochin-Italic
+    Font: Cochin-Bold
+    Font: Cochin-BoldItalic
+Font Family: Copperplate
+    Font: Copperplate
+    Font: Copperplate-Light
+    Font: Copperplate-Bold
+Font Family: Courier New
+    Font: CourierNewPSMT
+    Font: CourierNewPS-ItalicMT
+    Font: CourierNewPS-BoldMT
+    Font: CourierNewPS-BoldItalicMT
+Font Family: Damascus
+    Font: Damascus
+    Font: DamascusLight
+    Font: DamascusMedium
+    Font: DamascusSemiBold
+    Font: DamascusBold
+Font Family: Devanagari Sangam MN
+    Font: DevanagariSangamMN
+    Font: DevanagariSangamMN-Bold
+Font Family: Didot
+    Font: Didot
+    Font: Didot-Italic
+    Font: Didot-Bold
+Font Family: DIN Alternate
+    Font: DINAlternate-Bold
+Font Family: DIN Condensed
+    Font: DINCondensed-Bold
+Font Family: Euphemia UCAS
+    Font: EuphemiaUCAS
+    Font: EuphemiaUCAS-Italic
+    Font: EuphemiaUCAS-Bold
+Font Family: Farah
+    Font: Farah
+Font Family: Futura
+    Font: Futura-Medium
+    Font: Futura-MediumItalic
+    Font: Futura-Bold
+    Font: Futura-CondensedMedium
+    Font: Futura-CondensedExtraBold
+Font Family: Galvji
+    Font: Galvji
+    Font: Galvji-Bold
+Font Family: Geeza Pro
+    Font: GeezaPro
+    Font: GeezaPro-Bold
+Font Family: Georgia
+    Font: Georgia
+    Font: Georgia-Italic
+    Font: Georgia-Bold
+    Font: Georgia-BoldItalic
+Font Family: Gill Sans
+    Font: GillSans
+    Font: GillSans-Italic
+    Font: GillSans-Light
+    Font: GillSans-LightItalic
+    Font: GillSans-SemiBold
+    Font: GillSans-SemiBoldItalic
+    Font: GillSans-Bold
+    Font: GillSans-BoldItalic
+    Font: GillSans-UltraBold
+Font Family: Grantha Sangam MN
+    Font: GranthaSangamMN-Regular
+    Font: GranthaSangamMN-Bold
+Font Family: Helvetica
+    Font: Helvetica
+    Font: Helvetica-Oblique
+    Font: Helvetica-Light
+    Font: Helvetica-LightOblique
+    Font: Helvetica-Bold
+    Font: Helvetica-BoldOblique
+Font Family: Helvetica Neue
+    Font: HelveticaNeue
+    Font: HelveticaNeue-Italic
+    Font: HelveticaNeue-UltraLight
+    Font: HelveticaNeue-UltraLightItalic
+    Font: HelveticaNeue-Thin
+    Font: HelveticaNeue-ThinItalic
+    Font: HelveticaNeue-Light
+    Font: HelveticaNeue-LightItalic
+    Font: HelveticaNeue-Medium
+    Font: HelveticaNeue-MediumItalic
+    Font: HelveticaNeue-Bold
+    Font: HelveticaNeue-BoldItalic
+    Font: HelveticaNeue-CondensedBold
+    Font: HelveticaNeue-CondensedBlack
+Font Family: Hiragino Maru Gothic ProN
+    Font: HiraMaruProN-W4
+Font Family: Hiragino Mincho ProN
+    Font: HiraMinProN-W3
+    Font: HiraMinProN-W6
+Font Family: Hiragino Sans
+    Font: HiraginoSans-W3
+    Font: HiraginoSans-W4
+    Font: HiraginoSans-W5
+    Font: HiraginoSans-W6
+    Font: HiraginoSans-W7
+    Font: HiraginoSans-W8
+Font Family: Hoefler Text
+    Font: HoeflerText-Regular
+    Font: HoeflerText-Italic
+    Font: HoeflerText-Black
+    Font: HoeflerText-BlackItalic
+Font Family: Impact
+    Font: Impact
+Font Family: Kailasa
+    Font: Kailasa
+    Font: Kailasa-Bold
+Font Family: Kefa
+    Font: Kefa-Regular
+Font Family: Khmer Sangam MN
+    Font: KhmerSangamMN
+Font Family: Kohinoor Bangla
+    Font: KohinoorBangla-Regular
+    Font: KohinoorBangla-Light
+    Font: KohinoorBangla-Semibold
+Font Family: Kohinoor Devanagari
+    Font: KohinoorDevanagari-Regular
+    Font: KohinoorDevanagari-Light
+    Font: KohinoorDevanagari-Semibold
+Font Family: Kohinoor Gujarati
+    Font: KohinoorGujarati-Regular
+    Font: KohinoorGujarati-Light
+    Font: KohinoorGujarati-Bold
+Font Family: Kohinoor Telugu
+    Font: KohinoorTelugu-Regular
+    Font: KohinoorTelugu-Light
+    Font: KohinoorTelugu-Medium
+Font Family: Lao Sangam MN
+    Font: LaoSangamMN
+Font Family: Malayalam Sangam MN
+    Font: MalayalamSangamMN
+    Font: MalayalamSangamMN-Bold
+Font Family: Marker Felt
+    Font: MarkerFelt-Thin
+    Font: MarkerFelt-Wide
+Font Family: Menlo
+    Font: Menlo-Regular
+    Font: Menlo-Italic
+    Font: Menlo-Bold
+    Font: Menlo-BoldItalic
+Font Family: Mishafi
+    Font: DiwanMishafi
+Font Family: Mukta Mahee
+    Font: MuktaMahee-Regular
+    Font: MuktaMahee-Light
+    Font: MuktaMahee-Bold
+Font Family: Myanmar Sangam MN
+    Font: MyanmarSangamMN
+    Font: MyanmarSangamMN-Bold
+Font Family: Noteworthy
+    Font: Noteworthy-Light
+    Font: Noteworthy-Bold
+Font Family: Noto Nastaliq Urdu
+    Font: NotoNastaliqUrdu
+    Font: NotoNastaliqUrdu-Bold
+Font Family: Noto Sans Kannada
+    Font: NotoSansKannada-Regular
+    Font: NotoSansKannada-Light
+    Font: NotoSansKannada-Bold
+Font Family: Noto Sans Myanmar
+    Font: NotoSansMyanmar-Regular
+    Font: NotoSansMyanmar-Light
+    Font: NotoSansMyanmar-Bold
+Font Family: Noto Sans Oriya
+    Font: NotoSansOriya
+    Font: NotoSansOriya-Bold
+Font Family: Noto Sans Syriac
+    Font: NotoSansSyriac-Regular
+    Font: NotoSansSyriac-Regular_Thin
+    Font: NotoSansSyriac-Regular_ExtraLight
+    Font: NotoSansSyriac-Regular_Light
+    Font: NotoSansSyriac-Regular_Medium
+    Font: NotoSansSyriac-Regular_SemiBold
+    Font: NotoSansSyriac-Regular_Bold
+    Font: NotoSansSyriac-Regular_ExtraBold
+    Font: NotoSansSyriac-Regular_Black
+Font Family: Optima
+    Font: Optima-Regular
+    Font: Optima-Italic
+    Font: Optima-Bold
+    Font: Optima-BoldItalic
+    Font: Optima-ExtraBlack
+Font Family: Palatino
+    Font: Palatino-Roman
+    Font: Palatino-Italic
+    Font: Palatino-Bold
+    Font: Palatino-BoldItalic
+Font Family: Papyrus
+    Font: Papyrus
+    Font: Papyrus-Condensed
+Font Family: Party LET
+    Font: PartyLetPlain
+Font Family: PingFang HK
+    Font: PingFangHK-Regular
+    Font: PingFangHK-Ultralight
+    Font: PingFangHK-Thin
+    Font: PingFangHK-Light
+    Font: PingFangHK-Medium
+    Font: PingFangHK-Semibold
+Font Family: PingFang MO
+    Font: PingFangMO-Regular
+    Font: PingFangMO-Ultralight
+    Font: PingFangMO-Thin
+    Font: PingFangMO-Light
+    Font: PingFangMO-Medium
+    Font: PingFangMO-Semibold
+Font Family: PingFang SC
+    Font: PingFangSC-Regular
+    Font: PingFangSC-Ultralight
+    Font: PingFangSC-Thin
+    Font: PingFangSC-Light
+    Font: PingFangSC-Medium
+    Font: PingFangSC-Semibold
+Font Family: PingFang TC
+    Font: PingFangTC-Regular
+    Font: PingFangTC-Ultralight
+    Font: PingFangTC-Thin
+    Font: PingFangTC-Light
+    Font: PingFangTC-Medium
+    Font: PingFangTC-Semibold
+Font Family: Rockwell
+    Font: Rockwell-Regular
+    Font: Rockwell-Italic
+    Font: Rockwell-Bold
+    Font: Rockwell-BoldItalic
+Font Family: Savoye LET
+    Font: SavoyeLetPlain
+Font Family: Sinhala Sangam MN
+    Font: SinhalaSangamMN
+    Font: SinhalaSangamMN-Bold
+Font Family: Snell Roundhand
+    Font: SnellRoundhand
+    Font: SnellRoundhand-Bold
+    Font: SnellRoundhand-Black
+Font Family: STIX Two Math
+    Font: STIXTwoMath-Regular
+Font Family: STIX Two Text
+    Font: STIXTwoText
+    Font: STIXTwoText-Italic
+    Font: STIXTwoText_Medium
+    Font: STIXTwoText-Italic_Medium-Italic
+    Font: STIXTwoText_SemiBold
+    Font: STIXTwoText-Italic_SemiBold-Italic
+    Font: STIXTwoText_Bold
+    Font: STIXTwoText-Italic_Bold-Italic
+Font Family: Symbol
+    Font: Symbol
+Font Family: Tamil Sangam MN
+    Font: TamilSangamMN
+    Font: TamilSangamMN-Bold
+Font Family: Thonburi
+    Font: Thonburi
+    Font: Thonburi-Light
+    Font: Thonburi-Bold
+Font Family: Times New Roman
+    Font: TimesNewRomanPSMT
+    Font: TimesNewRomanPS-ItalicMT
+    Font: TimesNewRomanPS-BoldMT
+    Font: TimesNewRomanPS-BoldItalicMT
+Font Family: Trebuchet MS
+    Font: TrebuchetMS
+    Font: TrebuchetMS-Italic
+    Font: TrebuchetMS-Bold
+    Font: Trebuchet-BoldItalic
+Font Family: Verdana
+    Font: Verdana
+    Font: Verdana-Italic
+    Font: Verdana-Bold
+    Font: Verdana-BoldItalic
+Font Family: Zapf Dingbats
+    Font: ZapfDingbatsITC
+Font Family: Zapfino
+    Font: Zapfino
+
+## Scene Physics Body
+
+*24 November 2024*
+
+SpriteKit physicsWorld puts a small circular physics body at the origin of the scene. We can detect its presence in some cases where it would collide with physics joints created by the user. I use this function before making any physics setup to avoid these collisions:
+
+```swift
+physicsWorld.enumerateBodies(in:(self.frame)) { body, _ in
+	body.collisionBitMask = 0
+}
+```
+
+This function enumerates all physics bodies in the scene, and disable their collision with other bodies. This solution was suggested by [BillMHourly](https://stackoverflow.com/a/49396535/420176).
+
+While I was investigating something else using Xcode Memory Graph, I saw this:
+
+<img src="Screenshots/SpriteKit - The Joint Created by Physics.png" alt="SpriteKit - The Joint Created by Physics" style="zoom:50%;" />
+
+Notice the `_scenePinBody` reference. It looks like a pin joint is attached to the scene when SpriteKit is running physics!
+
 ## SF Symbol
 
 *19 November 2024*
@@ -1004,48 +1444,45 @@ shape.path = path
 
 ## Selection and Traversal
 
-*14 March 2024*
+*14 March 2024, updated 4 December 2024*
 
 ```swift
-// select all nodes
-enumerateChildNodes(withName: "//.", using: {node, _ in
+// Get all nodes in the scene
+// `//.` means "select all nodes starting from the scene root"
+enumerateChildNodes(withName: "//.", using: { node, _ in
 
 })
 
-// find nodes that have "string" in their name
-// The asterisks (*) match any characters before and after the search string
-enumerateChildNodes(withName: "//*string*", using: {node, _ in
+// Find nodes that have "string" in their name
+// `//*string*` starts the search from the scene root
+// The asterisks `*` are wildcards matching any characters before and after "string"
+enumerateChildNodes(withName: "//*string*", using: { node, _ in
 
 })
 
-// select a node by name, no matter how deep in the hierarchy
-// the `//` means that the search doesn't stop to the immediate children nodes
-parentNode.childNode(withName: "//nodeName")
+// Find the first node matching the exact name
+// The `//` starts the search from the scene root
+childNode(withName: "//nodeName")
 
-// code for the first node matching the given name 
-childNode(withName: "nodeName") {node, _ in
-                                 
-}
+// Find the first node matching the exact name
+// This search is limited to the direct children of `parentNode`
+parentNode.childNode(withName: "nodeName")
 
-// code for every node with the given name
-enumerateChildNodes(withName: "nodeName") {node, _ in
-	
-}
-
-// same as above, with a different syntax
+// Enumerate every node with this exact name
+// Only matches nodes with the exact name, starting from the current node (or scene root if used on the scene)
 enumerateChildNodes(withName: "nodeName", using: { node, _ in
-	
+
 })
 
-// same as above, with the added stop parameter
-// Use `stop.pointee = true` or `stop[0] = true` to stop the enumeration
-enumerateChildNodes(withName: "nodeName") {node, stop in
-	
+// Same as above, alternative syntax with an inline closure
+enumerateChildNodes(withName: "nodeName") { node, _ in
+
 }
 
-// code for myNode with name "targetName"
-if let myNode = childNode(withName: "//my-node") {
-    
+// Same as above, but with the added `stop` parameter
+// You can set `stop.pointee = true` or `stop[0] = true` to halt enumeration early
+enumerateChildNodes(withName: "nodeName") { node, stop in
+
 }
 ```
 
