@@ -35,7 +35,7 @@ class BoilerplateUIKitViewController: UIViewController {
         ])
         
         /// Setup SKView
-        let scene = BoilerplateUIKitScene()
+        let scene = MyScene() // A reference to your SKScene
         skView.presentScene(scene)
         skView.contentMode = .center
         skView.showsFPS = true
