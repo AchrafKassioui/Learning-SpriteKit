@@ -16,7 +16,7 @@ class BoilerplateUIKitViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
         
-        /// Create and add an SKView to the view hierarchy
+        // Create and add an SKView to the view hierarchy
         let skView = SKView()
         self.view.addSubview(skView)
         /// If auto layout is disabled, a CGRect must be assigned to SKView's frame property.
