@@ -799,7 +799,7 @@ For example, mainstream UI toolkits have concepts such as two-way binding and vi
 
 I'm currently trying both SwiftUI and SpriteKit for UI. I need things such as: one finger rotation (a wheel that you can spin with inertia to control something in the scene), draggable palettes, multi-touch modals (hold A while dragging B to do C), responsive positioning, and other gizmos. I find SwiftUI interesting to quickly iterate on a drag gesture or place a reusable button that calls an action. But SwiftUI can be incredibly frustrating, since it is its own thing. There is no way you can guess which modifier you need, or if there's even one in the first place. It's like learning an ideographic language: you have to learn a ton of arbitrary patterns and assemble arbitrary symbols.
 
-With SpriteKit, you have old schools patterns that you could find in many languages and many platforms. If you want a draggable node, you can subclass SKSpriteNode, handle touch events there, and create instances of that in your scene. The downside is that iteration if slower during the "f**k around and find out" phase of every computing project worth the trouble.
+With SpriteKit, you have old schools patterns that you could find in many languages and many platforms. If you want a draggable node, you can subclass SKSpriteNode, handle touch events there, and create instances of that in your scene. Or you can explore GameplayKit and make a gizmo out of behavioral components. The results are deeper, but the setup more involved.
 
 ## Observation with SpriteKit
 
