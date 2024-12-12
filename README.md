@@ -1,5 +1,65 @@
 # Learning SpriteKit
 
+## UIKit Boilerplate
+
+*11 December 2024*
+
+Frustrated by SwiftUI, I moved to UIKit. Below is a boilerplate to display a SpriteKit scene using a UIKit view controller, and have Xcode show a live preview of it.
+
+```swift
+import UIKit
+import SpriteKit
+
+class BoilerplateUIKitViewController: UIViewController {
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .black
+        
+        /// Create and add an SKView to the view hierarchy
+        let skView = SKView()
+        self.view.addSubview(skView)
+        /// If auto layout is disabled, a CGRect must be assigned to SKView's frame property.
+        /// If auto layout is enabled, the frame of SKView will be set by auto-layout according to its constraints.
+        skView.frame = view.bounds
+        
+        /// Enable Auto Layout
+        skView.translatesAutoresizingMaskIntoConstraints = false
+        /// Setup auto layout
+        /// This particular setup will maintain SKView inside the screen safe area
+        NSLayoutConstraint.activate([
+            skView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            skView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            skView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            skView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        ])
+        
+        /// Setup SKView
+        let scene = BoilerplateUIKitScene()
+        skView.presentScene(scene)
+        skView.contentMode = .center
+        skView.showsFPS = true
+        skView.showsNodeCount = true
+        skView.showsDrawCount = true
+        skView.preferredFramesPerSecond = 120
+    }
+    
+    /// Hide the status bar (clock, signal, and battery indicators)
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
+    /// Hide the home bar icon on devices without a physical home button
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+}
+
+#Preview() {
+    BoilerplateUIKitViewController()
+}
+```
+
 ## 120 fps
 
 *9 December 2024*
@@ -27,398 +87,483 @@ struct ContentView: View {
 
 There are three ways to pick fonts in SpriteKit:
 
-- Use one of the font families natively supported by SpriteKit's `fontFamily` (see list below).
+- Use one of the fonts natively supported by SpriteKit's `fontName` (see list below).
 - Add a font file to your Xcode project, and configure the project's info list accordingly (see the note "Fonts").
-- Use `NSAttributedString` and UIKit, and assign that to the `attributedText` property of `SKLabelNode`.
+- Use `NSAttributedString` and UIKit, then assign that to the `attributedText` property of `SKLabelNode`.
 
-Here's the list of the fonts that can be natively used with `SKLabelNode`'s `fontFamily` property: 
+Here's the list of the fonts that can be natively used with `SKLabelNode`'s `fontName` property. The font name should be one of the variant names, not the family name itself.
 
-Font Family: Academy Engraved LET
-    Font: AcademyEngravedLetPlain
-Font Family: Al Nile
-    Font: AlNile
-    Font: AlNile-Bold
-Font Family: American Typewriter
-    Font: AmericanTypewriter
-    Font: AmericanTypewriter-Light
-    Font: AmericanTypewriter-Semibold
-    Font: AmericanTypewriter-Bold
-    Font: AmericanTypewriter-Condensed
-    Font: AmericanTypewriter-CondensedLight
-    Font: AmericanTypewriter-CondensedBold
-Font Family: Apple Color Emoji
-    Font: AppleColorEmoji
-Font Family: Apple SD Gothic Neo
-    Font: AppleSDGothicNeo-Regular
-    Font: AppleSDGothicNeo-Thin
-    Font: AppleSDGothicNeo-UltraLight
-    Font: AppleSDGothicNeo-Light
-    Font: AppleSDGothicNeo-Medium
-    Font: AppleSDGothicNeo-SemiBold
-    Font: AppleSDGothicNeo-Bold
-Font Family: Apple Symbols
-    Font: AppleSymbols
-Font Family: Arial
-    Font: ArialMT
-    Font: Arial-ItalicMT
-    Font: Arial-BoldMT
-    Font: Arial-BoldItalicMT
-Font Family: Arial Hebrew
-    Font: ArialHebrew
-    Font: ArialHebrew-Light
-    Font: ArialHebrew-Bold
-Font Family: Arial Rounded MT Bold
-    Font: ArialRoundedMTBold
-Font Family: Avenir
-    Font: Avenir-Book
-    Font: Avenir-Roman
-    Font: Avenir-BookOblique
-    Font: Avenir-Oblique
-    Font: Avenir-Light
-    Font: Avenir-LightOblique
-    Font: Avenir-Medium
-    Font: Avenir-MediumOblique
-    Font: Avenir-Heavy
-    Font: Avenir-HeavyOblique
-    Font: Avenir-Black
-    Font: Avenir-BlackOblique
-Font Family: Avenir Next
-    Font: AvenirNext-Regular
-    Font: AvenirNext-Italic
-    Font: AvenirNext-UltraLight
-    Font: AvenirNext-UltraLightItalic
-    Font: AvenirNext-Medium
-    Font: AvenirNext-MediumItalic
-    Font: AvenirNext-DemiBold
-    Font: AvenirNext-DemiBoldItalic
-    Font: AvenirNext-Bold
-    Font: AvenirNext-BoldItalic
-    Font: AvenirNext-Heavy
-    Font: AvenirNext-HeavyItalic
-Font Family: Avenir Next Condensed
-    Font: AvenirNextCondensed-Regular
-    Font: AvenirNextCondensed-Italic
-    Font: AvenirNextCondensed-UltraLight
-    Font: AvenirNextCondensed-UltraLightItalic
-    Font: AvenirNextCondensed-Medium
-    Font: AvenirNextCondensed-MediumItalic
-    Font: AvenirNextCondensed-DemiBold
-    Font: AvenirNextCondensed-DemiBoldItalic
-    Font: AvenirNextCondensed-Bold
-    Font: AvenirNextCondensed-BoldItalic
-    Font: AvenirNextCondensed-Heavy
-    Font: AvenirNextCondensed-HeavyItalic
-Font Family: Baskerville
-    Font: Baskerville
-    Font: Baskerville-Italic
-    Font: Baskerville-SemiBold
-    Font: Baskerville-SemiBoldItalic
-    Font: Baskerville-Bold
-    Font: Baskerville-BoldItalic
-Font Family: Bodoni 72
-    Font: BodoniSvtyTwoITCTT-Book
-    Font: BodoniSvtyTwoITCTT-BookIta
-    Font: BodoniSvtyTwoITCTT-Bold
-Font Family: Bodoni 72 Oldstyle
-    Font: BodoniSvtyTwoOSITCTT-Book
-    Font: BodoniSvtyTwoOSITCTT-BookIt
-    Font: BodoniSvtyTwoOSITCTT-Bold
-Font Family: Bodoni 72 Smallcaps
-    Font: BodoniSvtyTwoSCITCTT-Book
-Font Family: Bodoni Ornaments
-    Font: BodoniOrnamentsITCTT
-Font Family: Bradley Hand
-    Font: BradleyHandITCTT-Bold
-Font Family: Chalkboard SE
-    Font: ChalkboardSE-Regular
-    Font: ChalkboardSE-Light
-    Font: ChalkboardSE-Bold
-Font Family: Chalkduster
-    Font: Chalkduster
-Font Family: Charter
-    Font: Charter-Roman
-    Font: Charter-Italic
-    Font: Charter-Bold
-    Font: Charter-BoldItalic
-    Font: Charter-Black
-    Font: Charter-BlackItalic
-Font Family: Cochin
-    Font: Cochin
-    Font: Cochin-Italic
-    Font: Cochin-Bold
-    Font: Cochin-BoldItalic
-Font Family: Copperplate
-    Font: Copperplate
-    Font: Copperplate-Light
-    Font: Copperplate-Bold
-Font Family: Courier New
-    Font: CourierNewPSMT
-    Font: CourierNewPS-ItalicMT
-    Font: CourierNewPS-BoldMT
-    Font: CourierNewPS-BoldItalicMT
-Font Family: Damascus
-    Font: Damascus
-    Font: DamascusLight
-    Font: DamascusMedium
-    Font: DamascusSemiBold
-    Font: DamascusBold
-Font Family: Devanagari Sangam MN
-    Font: DevanagariSangamMN
-    Font: DevanagariSangamMN-Bold
-Font Family: Didot
-    Font: Didot
-    Font: Didot-Italic
-    Font: Didot-Bold
-Font Family: DIN Alternate
-    Font: DINAlternate-Bold
-Font Family: DIN Condensed
-    Font: DINCondensed-Bold
-Font Family: Euphemia UCAS
-    Font: EuphemiaUCAS
-    Font: EuphemiaUCAS-Italic
-    Font: EuphemiaUCAS-Bold
-Font Family: Farah
-    Font: Farah
-Font Family: Futura
-    Font: Futura-Medium
-    Font: Futura-MediumItalic
-    Font: Futura-Bold
-    Font: Futura-CondensedMedium
-    Font: Futura-CondensedExtraBold
-Font Family: Galvji
-    Font: Galvji
-    Font: Galvji-Bold
-Font Family: Geeza Pro
-    Font: GeezaPro
-    Font: GeezaPro-Bold
-Font Family: Georgia
-    Font: Georgia
-    Font: Georgia-Italic
-    Font: Georgia-Bold
-    Font: Georgia-BoldItalic
-Font Family: Gill Sans
-    Font: GillSans
-    Font: GillSans-Italic
-    Font: GillSans-Light
-    Font: GillSans-LightItalic
-    Font: GillSans-SemiBold
-    Font: GillSans-SemiBoldItalic
-    Font: GillSans-Bold
-    Font: GillSans-BoldItalic
-    Font: GillSans-UltraBold
-Font Family: Grantha Sangam MN
-    Font: GranthaSangamMN-Regular
-    Font: GranthaSangamMN-Bold
-Font Family: Helvetica
-    Font: Helvetica
-    Font: Helvetica-Oblique
-    Font: Helvetica-Light
-    Font: Helvetica-LightOblique
-    Font: Helvetica-Bold
-    Font: Helvetica-BoldOblique
-Font Family: Helvetica Neue
-    Font: HelveticaNeue
-    Font: HelveticaNeue-Italic
-    Font: HelveticaNeue-UltraLight
-    Font: HelveticaNeue-UltraLightItalic
-    Font: HelveticaNeue-Thin
-    Font: HelveticaNeue-ThinItalic
-    Font: HelveticaNeue-Light
-    Font: HelveticaNeue-LightItalic
-    Font: HelveticaNeue-Medium
-    Font: HelveticaNeue-MediumItalic
-    Font: HelveticaNeue-Bold
-    Font: HelveticaNeue-BoldItalic
-    Font: HelveticaNeue-CondensedBold
-    Font: HelveticaNeue-CondensedBlack
-Font Family: Hiragino Maru Gothic ProN
-    Font: HiraMaruProN-W4
-Font Family: Hiragino Mincho ProN
-    Font: HiraMinProN-W3
-    Font: HiraMinProN-W6
-Font Family: Hiragino Sans
-    Font: HiraginoSans-W3
-    Font: HiraginoSans-W4
-    Font: HiraginoSans-W5
-    Font: HiraginoSans-W6
-    Font: HiraginoSans-W7
-    Font: HiraginoSans-W8
-Font Family: Hoefler Text
-    Font: HoeflerText-Regular
-    Font: HoeflerText-Italic
-    Font: HoeflerText-Black
-    Font: HoeflerText-BlackItalic
-Font Family: Impact
-    Font: Impact
-Font Family: Kailasa
-    Font: Kailasa
-    Font: Kailasa-Bold
-Font Family: Kefa
-    Font: Kefa-Regular
-Font Family: Khmer Sangam MN
-    Font: KhmerSangamMN
-Font Family: Kohinoor Bangla
-    Font: KohinoorBangla-Regular
-    Font: KohinoorBangla-Light
-    Font: KohinoorBangla-Semibold
-Font Family: Kohinoor Devanagari
-    Font: KohinoorDevanagari-Regular
-    Font: KohinoorDevanagari-Light
-    Font: KohinoorDevanagari-Semibold
-Font Family: Kohinoor Gujarati
-    Font: KohinoorGujarati-Regular
-    Font: KohinoorGujarati-Light
-    Font: KohinoorGujarati-Bold
-Font Family: Kohinoor Telugu
-    Font: KohinoorTelugu-Regular
-    Font: KohinoorTelugu-Light
-    Font: KohinoorTelugu-Medium
-Font Family: Lao Sangam MN
-    Font: LaoSangamMN
-Font Family: Malayalam Sangam MN
-    Font: MalayalamSangamMN
-    Font: MalayalamSangamMN-Bold
-Font Family: Marker Felt
-    Font: MarkerFelt-Thin
-    Font: MarkerFelt-Wide
-Font Family: Menlo
-    Font: Menlo-Regular
-    Font: Menlo-Italic
-    Font: Menlo-Bold
-    Font: Menlo-BoldItalic
-Font Family: Mishafi
-    Font: DiwanMishafi
-Font Family: Mukta Mahee
-    Font: MuktaMahee-Regular
-    Font: MuktaMahee-Light
-    Font: MuktaMahee-Bold
-Font Family: Myanmar Sangam MN
-    Font: MyanmarSangamMN
-    Font: MyanmarSangamMN-Bold
-Font Family: Noteworthy
-    Font: Noteworthy-Light
-    Font: Noteworthy-Bold
-Font Family: Noto Nastaliq Urdu
-    Font: NotoNastaliqUrdu
-    Font: NotoNastaliqUrdu-Bold
-Font Family: Noto Sans Kannada
-    Font: NotoSansKannada-Regular
-    Font: NotoSansKannada-Light
-    Font: NotoSansKannada-Bold
-Font Family: Noto Sans Myanmar
-    Font: NotoSansMyanmar-Regular
-    Font: NotoSansMyanmar-Light
-    Font: NotoSansMyanmar-Bold
-Font Family: Noto Sans Oriya
-    Font: NotoSansOriya
-    Font: NotoSansOriya-Bold
-Font Family: Noto Sans Syriac
-    Font: NotoSansSyriac-Regular
-    Font: NotoSansSyriac-Regular_Thin
-    Font: NotoSansSyriac-Regular_ExtraLight
-    Font: NotoSansSyriac-Regular_Light
-    Font: NotoSansSyriac-Regular_Medium
-    Font: NotoSansSyriac-Regular_SemiBold
-    Font: NotoSansSyriac-Regular_Bold
-    Font: NotoSansSyriac-Regular_ExtraBold
-    Font: NotoSansSyriac-Regular_Black
-Font Family: Optima
-    Font: Optima-Regular
-    Font: Optima-Italic
-    Font: Optima-Bold
-    Font: Optima-BoldItalic
-    Font: Optima-ExtraBlack
-Font Family: Palatino
-    Font: Palatino-Roman
-    Font: Palatino-Italic
-    Font: Palatino-Bold
-    Font: Palatino-BoldItalic
-Font Family: Papyrus
-    Font: Papyrus
-    Font: Papyrus-Condensed
-Font Family: Party LET
-    Font: PartyLetPlain
-Font Family: PingFang HK
-    Font: PingFangHK-Regular
-    Font: PingFangHK-Ultralight
-    Font: PingFangHK-Thin
-    Font: PingFangHK-Light
-    Font: PingFangHK-Medium
-    Font: PingFangHK-Semibold
-Font Family: PingFang MO
-    Font: PingFangMO-Regular
-    Font: PingFangMO-Ultralight
-    Font: PingFangMO-Thin
-    Font: PingFangMO-Light
-    Font: PingFangMO-Medium
-    Font: PingFangMO-Semibold
-Font Family: PingFang SC
-    Font: PingFangSC-Regular
-    Font: PingFangSC-Ultralight
-    Font: PingFangSC-Thin
-    Font: PingFangSC-Light
-    Font: PingFangSC-Medium
-    Font: PingFangSC-Semibold
-Font Family: PingFang TC
-    Font: PingFangTC-Regular
-    Font: PingFangTC-Ultralight
-    Font: PingFangTC-Thin
-    Font: PingFangTC-Light
-    Font: PingFangTC-Medium
-    Font: PingFangTC-Semibold
-Font Family: Rockwell
-    Font: Rockwell-Regular
-    Font: Rockwell-Italic
-    Font: Rockwell-Bold
-    Font: Rockwell-BoldItalic
-Font Family: Savoye LET
-    Font: SavoyeLetPlain
-Font Family: Sinhala Sangam MN
-    Font: SinhalaSangamMN
-    Font: SinhalaSangamMN-Bold
-Font Family: Snell Roundhand
-    Font: SnellRoundhand
-    Font: SnellRoundhand-Bold
-    Font: SnellRoundhand-Black
-Font Family: STIX Two Math
-    Font: STIXTwoMath-Regular
-Font Family: STIX Two Text
-    Font: STIXTwoText
-    Font: STIXTwoText-Italic
-    Font: STIXTwoText_Medium
-    Font: STIXTwoText-Italic_Medium-Italic
-    Font: STIXTwoText_SemiBold
-    Font: STIXTwoText-Italic_SemiBold-Italic
-    Font: STIXTwoText_Bold
-    Font: STIXTwoText-Italic_Bold-Italic
-Font Family: Symbol
-    Font: Symbol
-Font Family: Tamil Sangam MN
-    Font: TamilSangamMN
-    Font: TamilSangamMN-Bold
-Font Family: Thonburi
-    Font: Thonburi
-    Font: Thonburi-Light
-    Font: Thonburi-Bold
-Font Family: Times New Roman
-    Font: TimesNewRomanPSMT
-    Font: TimesNewRomanPS-ItalicMT
-    Font: TimesNewRomanPS-BoldMT
-    Font: TimesNewRomanPS-BoldItalicMT
-Font Family: Trebuchet MS
-    Font: TrebuchetMS
-    Font: TrebuchetMS-Italic
-    Font: TrebuchetMS-Bold
-    Font: Trebuchet-BoldItalic
-Font Family: Verdana
-    Font: Verdana
-    Font: Verdana-Italic
-    Font: Verdana-Bold
-    Font: Verdana-BoldItalic
-Font Family: Zapf Dingbats
-    Font: ZapfDingbatsITC
-Font Family: Zapfino
-    Font: Zapfino
+- Academy Engraved LET
+    - AcademyEngravedLetPlain
+
+- Al Nile
+    - AlNile
+    - AlNile-Bold
+
+- American Typewriter
+    - AmericanTypewriter
+    - AmericanTypewriter-Light
+    - AmericanTypewriter-Semibold
+    - AmericanTypewriter-Bold
+    - AmericanTypewriter-Condensed
+    - AmericanTypewriter-CondensedLight
+    - AmericanTypewriter-CondensedBold
+
+- Apple Color Emoji
+    - AppleColorEmoji
+
+- Apple SD Gothic Neo
+    - AppleSDGothicNeo-Regular
+    - AppleSDGothicNeo-Thin
+    - AppleSDGothicNeo-UltraLight
+    - AppleSDGothicNeo-Light
+    - AppleSDGothicNeo-Medium
+    - AppleSDGothicNeo-SemiBold
+    - AppleSDGothicNeo-Bold
+
+- Apple Symbols
+    - AppleSymbols
+
+- Arial
+    - ArialMT
+    - Arial-ItalicMT
+    - Arial-BoldMT
+    - Arial-BoldItalicMT
+
+- Arial Hebrew
+    - ArialHebrew
+    - ArialHebrew-Light
+    - ArialHebrew-Bold
+
+- Arial Rounded MT Bold
+    - ArialRoundedMTBold
+
+- Avenir
+    - Avenir-Book
+    - Avenir-Roman
+    - Avenir-BookOblique
+    - Avenir-Oblique
+    - Avenir-Light
+    - Avenir-LightOblique
+    - Avenir-Medium
+    - Avenir-MediumOblique
+    - Avenir-Heavy
+    - Avenir-HeavyOblique
+    - Avenir-Black
+    - Avenir-BlackOblique
+
+- Avenir Next
+    - AvenirNext-Regular
+    - AvenirNext-Italic
+    - AvenirNext-UltraLight
+    - AvenirNext-UltraLightItalic
+    - AvenirNext-Medium
+    - AvenirNext-MediumItalic
+    - AvenirNext-DemiBold
+    - AvenirNext-DemiBoldItalic
+    - AvenirNext-Bold
+    - AvenirNext-BoldItalic
+    - AvenirNext-Heavy
+    - AvenirNext-HeavyItalic
+
+- Avenir Next Condensed
+    - AvenirNextCondensed-Regular
+    - AvenirNextCondensed-Italic
+    - AvenirNextCondensed-UltraLight
+    - AvenirNextCondensed-UltraLightItalic
+    - AvenirNextCondensed-Medium
+    - AvenirNextCondensed-MediumItalic
+    - AvenirNextCondensed-DemiBold
+    - AvenirNextCondensed-DemiBoldItalic
+    - AvenirNextCondensed-Bold
+    - AvenirNextCondensed-BoldItalic
+    - AvenirNextCondensed-Heavy
+    - AvenirNextCondensed-HeavyItalic
+
+- Baskerville
+    - Baskerville
+    - Baskerville-Italic
+    - Baskerville-SemiBold
+    - Baskerville-SemiBoldItalic
+    - Baskerville-Bold
+    - Baskerville-BoldItalic
+
+- Bodoni 72
+    - BodoniSvtyTwoITCTT-Book
+    - BodoniSvtyTwoITCTT-BookIta
+    - BodoniSvtyTwoITCTT-Bold
+
+- Bodoni 72 Oldstyle
+    - BodoniSvtyTwoOSITCTT-Book
+    - BodoniSvtyTwoOSITCTT-BookIt
+    - BodoniSvtyTwoOSITCTT-Bold
+
+- Bodoni 72 Smallcaps
+    - BodoniSvtyTwoSCITCTT-Book
+
+- Bodoni Ornaments
+    - BodoniOrnamentsITCTT
+
+- Bradley Hand
+    - BradleyHandITCTT-Bold
+
+- Chalkboard SE
+    - ChalkboardSE-Regular
+    - ChalkboardSE-Light
+    - ChalkboardSE-Bold
+
+- Chalkduster
+    - Chalkduster
+
+- Charter
+    - Charter-Roman
+    - Charter-Italic
+    - Charter-Bold
+    - Charter-BoldItalic
+    - Charter-Black
+    - Charter-BlackItalic
+
+- Cochin
+    - Cochin
+    - Cochin-Italic
+    - Cochin-Bold
+    - Cochin-BoldItalic
+
+- Copperplate
+    - Copperplate
+    - Copperplate-Light
+    - Copperplate-Bold
+
+- Courier New
+    - CourierNewPSMT
+    - CourierNewPS-ItalicMT
+    - CourierNewPS-BoldMT
+    - CourierNewPS-BoldItalicMT
+
+- Damascus
+    - Damascus
+    - DamascusLight
+    - DamascusMedium
+    - DamascusSemiBold
+    - DamascusBold
+
+- Devanagari Sangam MN
+    - DevanagariSangamMN
+    - DevanagariSangamMN-Bold
+
+- Didot
+    - Didot
+    - Didot-Italic
+    - Didot-Bold
+
+- DIN Alternate
+    - DINAlternate-Bold
+
+- DIN Condensed
+    - DINCondensed-Bold
+
+- Euphemia UCAS
+    - EuphemiaUCAS
+    - EuphemiaUCAS-Italic
+    - EuphemiaUCAS-Bold
+
+- Farah
+    - Farah
+
+- Futura
+    - Futura-Medium
+    - Futura-MediumItalic
+    - Futura-Bold
+    - Futura-CondensedMedium
+    - Futura-CondensedExtraBold
+
+- Galvji
+    - Galvji
+    - Galvji-Bold
+
+- Geeza Pro
+    - GeezaPro
+    - GeezaPro-Bold
+
+- Georgia
+    - Georgia
+    - Georgia-Italic
+    - Georgia-Bold
+    - Georgia-BoldItalic
+
+- Gill Sans
+    - GillSans
+    - GillSans-Italic
+    - GillSans-Light
+    - GillSans-LightItalic
+    - GillSans-SemiBold
+    - GillSans-SemiBoldItalic
+    - GillSans-Bold
+    - GillSans-BoldItalic
+    - GillSans-UltraBold
+
+- Grantha Sangam MN
+    - GranthaSangamMN-Regular
+    - GranthaSangamMN-Bold
+
+- Helvetica
+    - Helvetica
+    - Helvetica-Oblique
+    - Helvetica-Light
+    - Helvetica-LightOblique
+    - Helvetica-Bold
+    - Helvetica-BoldOblique
+
+- Helvetica Neue
+    - HelveticaNeue
+    - HelveticaNeue-Italic
+    - HelveticaNeue-UltraLight
+    - HelveticaNeue-UltraLightItalic
+    - HelveticaNeue-Thin
+    - HelveticaNeue-ThinItalic
+    - HelveticaNeue-Light
+    - HelveticaNeue-LightItalic
+    - HelveticaNeue-Medium
+    - HelveticaNeue-MediumItalic
+    - HelveticaNeue-Bold
+    - HelveticaNeue-BoldItalic
+    - HelveticaNeue-CondensedBold
+    - HelveticaNeue-CondensedBlack
+
+- Hiragino Maru Gothic ProN
+    - HiraMaruProN-W4
+
+- Hiragino Mincho ProN
+    - HiraMinProN-W3
+    - HiraMinProN-W6
+
+- Hiragino Sans
+    - HiraginoSans-W3
+    - HiraginoSans-W4
+    - HiraginoSans-W5
+    - HiraginoSans-W6
+    - HiraginoSans-W7
+    - HiraginoSans-W8
+
+- Hoefler Text
+    - HoeflerText-Regular
+    - HoeflerText-Italic
+    - HoeflerText-Black
+    - HoeflerText-BlackItalic
+
+- Impact
+    - Impact
+
+- Kailasa
+    - Kailasa
+    - Kailasa-Bold
+
+- Kefa
+    - Kefa-Regular
+
+- Khmer Sangam MN
+    - KhmerSangamMN
+
+- Kohinoor Bangla
+    - KohinoorBangla-Regular
+    - KohinoorBangla-Light
+    - KohinoorBangla-Semibold
+
+- Kohinoor Devanagari
+    - KohinoorDevanagari-Regular
+    - KohinoorDevanagari-Light
+    - KohinoorDevanagari-Semibold
+
+- Kohinoor Gujarati
+    - KohinoorGujarati-Regular
+    - KohinoorGujarati-Light
+    - KohinoorGujarati-Bold
+
+- Kohinoor Telugu
+    - KohinoorTelugu-Regular
+    - KohinoorTelugu-Light
+    - KohinoorTelugu-Medium
+
+- Lao Sangam MN
+    - LaoSangamMN
+
+- Malayalam Sangam MN
+    - MalayalamSangamMN
+    - MalayalamSangamMN-Bold
+
+- Marker Felt
+    - MarkerFelt-Thin
+    - MarkerFelt-Wide
+
+- Menlo
+    - Menlo-Regular
+    - Menlo-Italic
+    - Menlo-Bold
+    - Menlo-BoldItalic
+
+- Mishafi
+    - DiwanMishafi
+
+- Mukta Mahee
+    - MuktaMahee-Regular
+    - MuktaMahee-Light
+    - MuktaMahee-Bold
+
+- Myanmar Sangam MN
+    - MyanmarSangamMN
+    - MyanmarSangamMN-Bold
+
+- Noteworthy
+    - Noteworthy-Light
+    - Noteworthy-Bold
+
+- Noto Nastaliq Urdu
+    - NotoNastaliqUrdu
+    - NotoNastaliqUrdu-Bold
+
+- Noto Sans Kannada
+    - NotoSansKannada-Regular
+    - NotoSansKannada-Light
+    - NotoSansKannada-Bold
+
+- Noto Sans Myanmar
+    - NotoSansMyanmar-Regular
+    - NotoSansMyanmar-Light
+    - NotoSansMyanmar-Bold
+
+- Noto Sans Oriya
+    - NotoSansOriya
+    - NotoSansOriya-Bold
+
+- Noto Sans Syriac
+    - NotoSansSyriac-Regular
+    - NotoSansSyriac-Regular_Thin
+    - NotoSansSyriac-Regular_ExtraLight
+    - NotoSansSyriac-Regular_Light
+    - NotoSansSyriac-Regular_Medium
+    - NotoSansSyriac-Regular_SemiBold
+    - NotoSansSyriac-Regular_Bold
+    - NotoSansSyriac-Regular_ExtraBold
+    - NotoSansSyriac-Regular_Black
+
+- Optima
+    - Optima-Regular
+    - Optima-Italic
+    - Optima-Bold
+    - Optima-BoldItalic
+    - Optima-ExtraBlack
+
+- Palatino
+    - Palatino-Roman
+    - Palatino-Italic
+    - Palatino-Bold
+    - Palatino-BoldItalic
+
+- Papyrus
+    - Papyrus
+    - Papyrus-Condensed
+
+- Party LET
+    - PartyLetPlain
+
+- PingFang HK
+    - PingFangHK-Regular
+    - PingFangHK-Ultralight
+    - PingFangHK-Thin
+    - PingFangHK-Light
+    - PingFangHK-Medium
+    - PingFangHK-Semibold
+
+- PingFang MO
+    - PingFangMO-Regular
+    - PingFangMO-Ultralight
+    - PingFangMO-Thin
+    - PingFangMO-Light
+    - PingFangMO-Medium
+    - PingFangMO-Semibold
+
+- PingFang SC
+    - PingFangSC-Regular
+    - PingFangSC-Ultralight
+    - PingFangSC-Thin
+    - PingFangSC-Light
+    - PingFangSC-Medium
+    - PingFangSC-Semibold
+
+- PingFang TC
+    - PingFangTC-Regular
+    - PingFangTC-Ultralight
+    - PingFangTC-Thin
+    - PingFangTC-Light
+    - PingFangTC-Medium
+    - PingFangTC-Semibold
+
+- Rockwell
+    - Rockwell-Regular
+    - Rockwell-Italic
+    - Rockwell-Bold
+    - Rockwell-BoldItalic
+
+- Savoye LET
+    - SavoyeLetPlain
+
+- Sinhala Sangam MN
+    - SinhalaSangamMN
+    - SinhalaSangamMN-Bold
+
+- Snell Roundhand
+    - SnellRoundhand
+    - SnellRoundhand-Bold
+    - SnellRoundhand-Black
+
+- STIX Two Math
+    - STIXTwoMath-Regular
+
+- STIX Two Text
+    - STIXTwoText
+    - STIXTwoText-Italic
+    - STIXTwoText_Medium
+    - STIXTwoText-Italic_Medium-Italic
+    - STIXTwoText_SemiBold
+    - STIXTwoText-Italic_SemiBold-Italic
+    - STIXTwoText_Bold
+    - STIXTwoText-Italic_Bold-Italic
+
+- Symbol
+    - Symbol
+
+- Tamil Sangam MN
+    - TamilSangamMN
+    - TamilSangamMN-Bold
+
+- Thonburi
+    - Thonburi
+    - Thonburi-Light
+    - Thonburi-Bold
+
+- Times New Roman
+    - TimesNewRomanPSMT
+    - TimesNewRomanPS-ItalicMT
+    - TimesNewRomanPS-BoldMT
+    - TimesNewRomanPS-BoldItalicMT
+
+- Trebuchet MS
+    - TrebuchetMS
+    - TrebuchetMS-Italic
+    - TrebuchetMS-Bold
+    - Trebuchet-BoldItalic
+
+- Verdana
+    - Verdana
+    - Verdana-Italic
+    - Verdana-Bold
+    - Verdana-BoldItalic
+
+- Zapf Dingbats
+    - ZapfDingbatsITC
+
+- Zapfino
+    - Zapfino
 
 ## Scene Physics Body
 
@@ -1895,7 +2040,7 @@ Update: while adding many emojis to the same `SKLabelNode`, the app crashed with
 
 https://en.wikipedia.org/wiki/Spatial_anti-aliasing#Super_sampling_/_full-scene_anti-aliasing
 
-## Setup with SwiftUI
+## SwiftUI Boilerplate
 
 *Updated 16 June 2024*
 
@@ -2024,7 +2169,7 @@ class MyScene: SKScene {
         // play/pause state
         self.isPaused = isScenePaused
         // background color of the scene
-        self.backgroundColor = .clear
+        self.backgroundColor = .gray
         // enable multi-touch event handling
         view.isMultipleTouchEnabled = true
     }
@@ -2032,108 +2177,26 @@ class MyScene: SKScene {
 }
 ```
 
-## Setup with UIKit
-
-```swift
-import UIKit
-import SpriteKit
-
-class GameViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        let scene = GameScene(size: CGSize(width: 2048, height: 1536))
-        scene.scaleMode = .aspectFill
-
-        let view = self.view as! SKView
-        view.presentScene(scene)
-    }
-}
-
-class GameScene: SKScene {
-    override init(size: CGSize) {
-        super.init(size: size)
-    }
-
-    required init(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-
-    override func didMove(to view: SKView) {
-
-    }
-}
-
-// load a scene from file
-import UIKit
-import SpriteKit
-
-class GameViewController: UIViewController {
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        if let view = self.view as! SKView? {
-            if let scene = SKScene(fileNamed: "SpriteKitScene") {
-                scene.scaleMode = .aspectFill
-                view.presentScene(scene)
-            }
-        }
-    }
-}
-```
-
-## UIKit view configuration
-
-```swift
-// inside the view controller
-view.preferredFramesPerSecond = 60
-view.showsFPS = true
-view.ignoresSiblingOrder = false
-view.showsNodeCount = true
-view.showsPhysics = true
-scene.scaleMode = .aspectFill
-```
-
-## SKScene methods
+## SKScene Transition
 
 ``` swift
-class scene: SKScene{
-    // declare a variable, with a type, without value
-    var myNodePosition: CGPoint?
-
-    override init(size: CGSize) {
-        super.init(size: size)
-        // the scene size is the passed size
-    }
-
-    override func didMove(to view: SKView) {
-        scene?.scaleMode = .aspectFit
-        // the scene size will depend on scaling mode
-    }
-
-    override func update(_ currentTime: TimeInterval) {
-        print(currentTime) // time since app started
-    }
-}
-
-// scene transition
-class StartView: SKScene {
-    let sceneToTransitionTo = MainView(size: size)
+class Scene1: SKScene {
+    let sceneToTransitionTo = Scene2(size: size)
     sceneToTransitionTo.scaleMode = .aspectFill
     let transitionEffect = SKTransition.push(with: .down, duration: 0.5)
     view?.presentScene(sceneToTransitionTo, transition: transitionEffect)  
-    }
+}
 
-    class MainView: SKScene {
-    // 
+class Scene2: SKScene {
+    //
 }
 ```
 
-## Node creation
+## Node Creation
 
 ```swift
 // empty node
-let parentNode = SKNode()
+let node = SKNode()
 
 // sprite from image
 var mySprite = SKSpriteNode(fileNamed: "imageFile") // add the image to Xcode assets
@@ -2143,22 +2206,22 @@ mySprite.position = CGPoint.zero
 // text
 let myText = SKLabelNode()
 myText.text = "Text to display"
-myText.fontSize = 28
 myText.fontName = "Impact"
+myText.fontSize = 28
 myText.fontColor = SKColor.black
 myText.position = CGPoint(x: size.width/2, y: size.height/2)
-
-// shape
-let cornerRadius: CGFloat = 7
-let rectSize = CGSize(width: 60, height: 60)
-let roundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: rectSize), cornerRadius: cornerRadius)
-shapeObject = SKShapeNode(path: roundedRectPath.cgPath)
-shapeObject.fillColor = .red
 
 // hollow shape with border
 let myFrame = SKShapeNode(rectOf: CGSize(width: 60, height: 60))
 myFrame.fillColor = .clear
 myFrame.strokeColor = .red
+
+// shape from path
+let cornerRadius: CGFloat = 7
+let rectSize = CGSize(width: 60, height: 60)
+let roundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: rectSize), cornerRadius: cornerRadius)
+shapeObject = SKShapeNode(path: roundedRectPath.cgPath)
+shapeObject.fillColor = .red
 ```
 
 ## Node properties
@@ -2168,27 +2231,22 @@ myFrame.strokeColor = .red
 myNode.position = CGPoint(x: 350, y: 400)
 myNode.position.x = CGFloat
 myNode.position.y = CGFloat
-myNode.zPosition = Int // z-index
+myNode.zPosition = Int // like z-index in the web
 
 // rotate
 myNode.zRotation = .pi / 4 // CGFloat, in this case, π/4, which is 45 deg counterclockwise
 
 // scale
 myNode.scale = 1 // Read only
-myNode.scaleX = 1 // x axis only
-myNode.scaleY = 1 // y axis only
-myNode.setScale(1) // setScale is a convenience method 
-myNode.setScale(x: 1.5, y: 0.5) // setScale is a convenience method
+myNode.xScale = 1 // x axis only
+myNode.yScale = 1 // y axis only
+myNode.setScale(1) // set both to a same value
 
 // Rendering
 myNode.alpha = CGFloat
 
 // methods
 myNode.isHidden = false // Boolean. When hidden, a node and its descendants are not rendered. However, they still exist in the scene and continue to interact in other ways. For example, the node’s actions still run and the node can still be intersected with other nodes.
-
-frame
-frame.midX
-frame.midY
 ```
 
 ## Physics Properties
@@ -2200,21 +2258,21 @@ physicsBody = SKPhysicsBody(edgeLoopFrom: scene.frame) // setup a physical bound
 
 // physicsBody properties
 myNode.physicsBody = SKPhysicsBody(/*..*/) // set up a physics body
-myNode.physicsBody!.restitution = 0.2 // default, bounciness, [0, 1]
-myNode.physicsBody!.friction = 0.2 // default, roughness, [0, 1]
-myNode.physicsBody!.density = 1.0 // default, kg/m2
-myNode.physicsBody!.isDynamic = Bool // can be moved by physics or not
-myNode.physicsBody!.allowsRotation = Bool
-myNode.physicsBody!.mass = 1.0 // automatically derived from density and area
-myNode.physicsBody!.area // read only
-myNode.physicsBody!.node // real only, returns the parent node
-myNode.physicsBody!.linearDamping = 0.1 // default, [0, 1]
-myNode.physicsBody!.angularDamping = 0.1 // default, [0, 1]
-myNode.physicsBody!.affectedByGravity = Bool // only with regard to scene gravity
-myNode.physicsBody!.pinned = Bool // Stick position to parent. Rotation still allowed
-myNode.physicsBody!.velocity = CGVector // m/s
-myNode.physicsBody!.angularVelocity = CGVector // radians/s
-myNode.physicsBody!.isResting = Bool
+myNode.physicsBody?.restitution = 0.2 // bounciness, [0, 1]
+myNode.physicsBody?.friction = 0.2 // roughness, [0, 1]
+myNode.physicsBody?.isDynamic = Bool // can be moved by physics or not
+myNode.physicsBody?.allowsRotation = Bool
+myNode.physicsBody?.density = 1.0 // kg/m2
+myNode.physicsBody?.mass = 1.0 // kg.
+myNode.physicsBody?.area // read only.
+myNode.physicsBody?.node // real only, returns the parent node
+myNode.physicsBody?.linearDamping = 0.1 // [0, inf]
+myNode.physicsBody?.angularDamping = 0.1 // [0, inf]
+myNode.physicsBody?.affectedByGravity = Bool // only with regard to scene gravity
+myNode.physicsBody?.pinned = Bool // Stick position to parent. Rotation still allowed
+myNode.physicsBody?.velocity = CGVector // m/s
+myNode.physicsBody?.angularVelocity = CGVector // radians/s
+myNode.physicsBody?.isResting = Bool // read only
 
 // compound bodies
 let bodies = [node1, node2]
@@ -2226,14 +2284,14 @@ myNode.physicsBody?.applyForce(CGVector(dx: 10, dy: 0)) // N/s, acceleration is 
 
 // spring joint
 let spring = SKPhysicsJointSpring.joint(
-    withBodyA: physicsBody!, // connect with the edges of the scene itself
-    bodyB: nodeA.physicsBody!,
-    anchorA: position, // the scene position
+    withBodyA: nodeA.physicsBody!,
+    bodyB: nodeB.physicsBody!,
+    anchorA: nodeA.position,
     anchorB: nodeB.position
 )
 spring.frequency = 0.5
 spring.damping = 0.2
-scene.physicsWorld.add(ropeJoint)
+physicsWorld.add(spring)
 
 // pin joint
 let myNode = scene.childNode(withName: "myNode") as? SKSpriteNode
@@ -2348,6 +2406,7 @@ cameraNode.position = CGPoint(x: size.width/2, y: size.height/2)
 
 ```swift
 // Whether a node receives touch events. Default = false
+// I find this to be unreliable. Nodes receive touch events in most of my experiments. Setting this property false wouldn't just stop that node from receiving events. This property may be relevant to custom subclasses of nodes, such as a sublcass of SKSpriteNode.
 myNode.isUserInteractionEnabled = Bool
 
 // touch began
