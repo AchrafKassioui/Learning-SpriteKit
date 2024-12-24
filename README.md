@@ -1,6 +1,6 @@
 # Learning SpriteKit
 
-## Scale Physics with the Camera
+## Scale Physics with Camera
 
 *22 December 2024*
 
