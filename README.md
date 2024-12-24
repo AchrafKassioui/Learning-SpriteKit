@@ -1,5 +1,72 @@
 # Learning SpriteKit
 
+## Scale Physics with the Camera
+
+*22 December 2024*
+
+A few months ago, I was exploring building the UI with physics. My app is an infinite canvas playground with a camera that zooms (scales). Therefore, physical bodies that are children of the camera (i.e. the UI) are scaled with the camera. This introduced many scaling issues, especially with non linear physics behavior such as those based on springs. The issue was that physics bodies live in scene coordinates (`physicsWorld`), while children of the camera are converted from scene coordinates to camera coordinates. This messes up with the position of physics joints. In addition, scaling a physics body does not scale the collision threshold. The finite distances the physics engine deals with are still defined in scene space. When two neighboring bodies are scaled 1/10 of their size, they may overlap or show instabilities.
+
+See the video below: as I zoom in or out with the camera, the spring joint length changes, and inevitably the effect breaks. The simulation does what it's supposed to do, but from a user perspective, it doesn't work.
+
+https://github.com/user-attachments/assets/5799ad39-f546-4abc-a8e7-dd5e61312270
+
+Fast forward to the past few weeks. I was working on a feature to record a SpriteKit view. I needed a way to output a sequence of frames from any SpriteKit animation, and be able to choose which nodes get rendered. This ended up involving a setup that moves nodes around at specific steps of the SpriteKit run loop:
+
+<img src="Screenshots/SpriteKit Run Loop.png" alt="SpriteKit Run Loop" style="zoom:50%;" />
+
+I got a working solution by executing codes at different moments between `update` and `didFinishUpdate`, and it gave me an idea: can I use that for my physics UI?
+
+It turns out, yes! For each frame, we can move nodes around and stabilize the simulation. Here's the idea in code:
+
+```swift
+let physicsLayer = SKNode()
+
+/// Add physics bodies to the physics layer
+
+override func update(_ currentTime: TimeInterval) {
+    putPhysicalObjectsInScene()
+}
+
+override func didFinishUpdate() {
+    putPhysicalObjectsInCamera()
+}
+
+func putPhysicalObjectsInScene() {
+    physicsLayer.position = .zero
+    physicsLayer.setScale(1)
+    physicsLayer.zRotation = 0
+}
+
+func putPhysicalObjectsInCamera() {
+    physicsLayer.position = inertialCamera.position
+    physicsLayer.xScale = inertialCamera.xScale
+    physicsLayer.yScale = inertialCamera.yScale
+    physicsLayer.zRotation = inertialCamera.zRotation
+}
+```
+
+The physicsLayer is an SKNode that contains the physical nodes I want to be part of the UI. Before `didSimulatePhysics`, I put them in the scene, let the simulation run, then in `didFinishUpdate` or any relevant callback after the physics simulation, I apply the camera transforms on them so they match the camera perspective. The video below shows the same setup as before, but this time the spring joints and other physics bodies behave as intended:
+
+https://github.com/user-attachments/assets/ad819c5c-77e1-439c-844a-1106089bce87
+
+“But nothing is happening in this video.” Exactly! The spring joint remains stable, no matter the camera zoom. You can see the physics debug outlines staying fixed in the scene, while the nodes’ visual rendering is correctly projected into camera space. That was the goal! This is great news for me—I can get back to exploring physics in user interface design.
+
+## SpriteKit Architecture
+
+*20 December 2024*
+
+In the context of highly interactive apps (a game being one example, but this could apply to any real-time, graphics-intensive app), I think patterns borrowed from the CRUD app world can become a trap. Techniques such as bindings or observation may turn out to be counterproductive. Instead, I'd build around the explicit run loop that generates each frame.
+
+For SpriteKit-based apps, the biggest challenge after gaining familiarity with the SpriteKit API is organizing the code. A pattern I see around is to treat SpriteKit’s run loop as the primary driver for all updates. This approach is how GameplayKit integrates with SpriteKit: we define entities and components, reference them within SpriteKit, and then use SpriteKit’s run loop callbacks (`update`, `didSimulatePhysics`, `didFinishUpdate`, etc.) to call the relevant functions of these entities and components at the appropriate moments.
+
+<img src="Screenshots/SpriteKit Architecture Diagram.png" alt="SpriteKit Architecture Diagram" />
+
+By carefully coordinating when logic is executed—whether during update, before simulating physics, after simulating physics, or just before rendering by SKView—we get access to possibilities completely alien to UI frameworks.
+
+In addition to the run loop, there is input handling. SKScene exposes methods such as `touchesBegan`, `touchesMoved`, and others for handling user input. These methods inherit from UIResponder rather than SKScene, and, as far as I know, they are not tied to the SpriteKit’s run loop (note: I need to better understand how input events and frame rendering are coordinated).
+
+To maintain clarity about what executes and when, I'm exploring the idea of storing input events in their own buckets, and processing them within methods called by the run loop. As opposed to immediately calling logic from within the input handlers.
+
 ## UIKit Boilerplate
 
 *11 December 2024*
@@ -10,17 +77,33 @@ Frustrated by SwiftUI, I moved to UIKit. Below is a boilerplate to display a Spr
 import UIKit
 import SpriteKit
 
-class BoilerplateUIKitViewController: UIViewController {
+class SpriteKitUIKitViewController: UIViewController {
+    
+	/// Hide the status bar (clock, signal, and battery indicators)
+    override var prefersStatusBarHidden: Bool {
+        return true
+    }
+    
+    /// Hide the home bar icon on devices without a physical home button
+    override var prefersHomeIndicatorAutoHidden: Bool {
+        return true
+    }
+    
+    /// Create an SKView
+    let skView = SKView()  
+    
+    // A reference to the SKScene
+    let scene = MyScene()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
+        view.backgroundColor = .black        
         
-        /// Create and add an SKView to the view hierarchy
-        let skView = SKView()
+        /// Add the SKView to the view hierarchy
         self.view.addSubview(skView)
+        
         /// If auto layout is disabled, a CGRect must be assigned to SKView's frame property.
-        /// If auto layout is enabled, the frame of SKView will be set by auto-layout according to its constraints.
+        /// If auto layout is enabled, the frame of SKView will be set by auto-layout according to its constraints, and the following line will be ignored.
         skView.frame = view.bounds
         
         /// Enable Auto Layout
@@ -33,28 +116,20 @@ class BoilerplateUIKitViewController: UIViewController {
             skView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             skView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
         ])
-        
-        /// Setup SKView
-        let scene = MyScene() // A reference to your SKScene
-        skView.presentScene(scene)
-        skView.contentMode = .center
-        skView.showsFPS = true
-        skView.showsNodeCount = true
-        skView.showsDrawCount = true
-        skView.preferredFramesPerSecond = 120
     }
     
-    /// Hide the status bar (clock, signal, and battery indicators)
-    override var prefersStatusBarHidden: Bool {
-        return true
-    }
-    
-    /// Hide the home bar icon on devices without a physical home button
-    override var prefersHomeIndicatorAutoHidden: Bool {
-        return true
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        /// Present the scene in viewDidLayoutSubviews so SKScene get the actual size of the view.
+        /// Since viewDidLayoutSubviews can be called multiple times during a view controller’s lifecycle, ensure the scene isn’t re-presented unnecessarily.
+        if skView.scene == nil {
+            skView.presentScene(scene)
+        }
     }
 }
 
+/// Live Preview the UIKit view controller
 #Preview() {
     BoilerplateUIKitViewController()
 }
