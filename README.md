@@ -10,7 +10,7 @@ See the video below: as I zoom in or out with the camera, the spring joint lengt
 
 https://github.com/user-attachments/assets/5799ad39-f546-4abc-a8e7-dd5e61312270
 
-Fast forward to the past few weeks. I was working on a feature to record a SpriteKit view. I needed a way to output a sequence of frames from any SpriteKit animation, and be able to choose which nodes get rendered. This ended up involving a setup that moves nodes around at specific steps of the SpriteKit run loop:
+Fast forward to the past few weeks. I was working on a feature that records a SpriteKit view. I needed a way to output a sequence of frames from any SpriteKit animation, and be able to choose which nodes get rendered. This ended up involving a setup that moves nodes around at specific steps of the SpriteKit run loop:
 
 <img src="Screenshots/SpriteKit Run Loop.png" alt="SpriteKit Run Loop" style="width:50%;" />
 
@@ -67,7 +67,7 @@ To maintain clarity about what executes and when, I'm exploring the idea of stor
 
 ## UIKit Boilerplate
 
-*11 December 2024*
+*11 December 2024, updated 24 December 2024*
 
 Frustrated by SwiftUI, I moved to UIKit. Below is a boilerplate to display a SpriteKit scene using a UIKit view controller, and have Xcode show a live preview of it.
 
