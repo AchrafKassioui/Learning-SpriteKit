@@ -19,7 +19,7 @@ I got a working solution by executing codes at different moments between `update
 It turns out, yes! For each frame, we can move nodes around and stabilize the simulation. Here's the idea in code:
 
 ```swift
-let physicsLayer = SKNode()
+let scalablePhysicsLayer = SKNode()
 
 override func update(_ currentTime: TimeInterval) {
     putPhysicalObjectsInScene()
@@ -30,26 +30,26 @@ override func didFinishUpdate() {
 }
 
 func putPhysicalObjectsInScene() {
-    physicsLayer.position = .zero
-    physicsLayer.setScale(1)
-    physicsLayer.zRotation = 0
+    scalablePhysicsLayer.position = .zero
+    scalablePhysicsLayer.setScale(1)
+    scalablePhysicsLayer.zRotation = 0
 }
 
 func putPhysicalObjectsInCamera() {
-    physicsLayer.position = inertialCamera.position
-    physicsLayer.xScale = inertialCamera.xScale
-    physicsLayer.yScale = inertialCamera.yScale
-    physicsLayer.zRotation = inertialCamera.zRotation
+    scalablePhysicsLayer.position = inertialCamera.position
+    scalablePhysicsLayer.xScale = inertialCamera.xScale
+    scalablePhysicsLayer.yScale = inertialCamera.yScale
+    scalablePhysicsLayer.zRotation = inertialCamera.zRotation
 }
 ```
 
-The physicsLayer is an SKNode that contains the physical nodes I want to be part of the UI. Before `didSimulatePhysics`, I put them in the scene, let the simulation run, then in `didFinishUpdate` or any relevant callback after the physics simulation, I apply the camera transforms on them so they match the camera perspective. The video below shows the same setup as before, but this time the spring joints and other physics bodies behave as intended:
+`scalablePhysicsLayer` is a node that contains the physical nodes I want to be part of the UI. Before `didSimulatePhysics`, I put them in the scene, let the simulation run, then in `didFinishUpdate` or any relevant callback after the physics simulation, I apply the camera transforms on them so they match the camera perspective. The video below shows the same setup as before, but this time the spring joints and other physics bodies behave as intended:
 
 https://github.com/user-attachments/assets/ad819c5c-77e1-439c-844a-1106089bce87
 
 “But nothing is happening in this video.” Exactly! The spring joint remains stable, no matter the camera zoom. You can see the physics debug outlines staying fixed in the scene, while the nodes’ visual rendering is correctly projected into camera space. That was the goal! This is great news for me—I can get back to exploring physics in user interface design.
 
-## SpriteKit Architecture
+## SpriteKit App Architecture
 
 *20 December 2024*
 
@@ -772,7 +772,7 @@ class MySceneDelegate: NSObject, SKSceneDelegate {
 }
 ```
 
-Note that once you set up a delegate that executes the game loop methods of SpriteKit, those methods won't be called inside your SKScene subclass.
+Note that once you set up a delegate that executes the run loop methods of SpriteKit, those methods won't be called inside your SKScene subclass anymore.
 
 ## SpriteKit and Swift 6
 
@@ -825,14 +825,30 @@ import SpriteKit
 
 ## Constraints
 
+*16 October 2024, updated 24 December 2024*
+
+Some sample codes to setup constraints in SpriteKit:
+
 ```swift
+/// Lock a node's position inside a specific frame
+let frame = CGRect(x: -150, y: -150, width: 300, height: 300)
+let xRange = SKRange(lowerLimit: frame.minX, upperLimit: frame.maxX)
+let yRange = SKRange(lowerLimit: frame.minY, upperLimit: frame.maxY)
+let lockInsideFrame = SKConstraint.positionX(xRange, y: yRange)
+node.constraints = [lockInsideFrame]
+
+/// Limit the rotation of a node to a specific range
 let rotationConstraint = SKConstraint.zRotation(SKRange(lowerLimit: -.pi/4, upperLimit: .pi/4))
-myNode.constraints = [rotationConstraint]
- 
-let range = SKRange(lowerLimit: 0.0, upperLimit: 0.0)
+node.constraints?.append(rotationConstraint) // Append if other constraints already exist
+
+/// Orient a node towards a target node with an offset
+/// The node will orient towards the target within an angular range of ±45° around its default alignment.
+let range = SKRange(lowerLimit: -.pi / 4, upperLimit: .pi / 4)
 let orientConstraint = SKConstraint.orient(to: targetNode, offset: range)
-myNode.constraints = [orientConstraint]
+node.constraints?.append(orientConstraint)
 ```
+
+SpriteKit constraints are applied just before `didFinishUpdate`. There is a callback called `didApplyConstraints` that fires when constraints have been applied.
 
 ## Physics Collision
 
@@ -1014,6 +1030,10 @@ Then all touch events are delivered to the scene.
 ## Physics Scales
 
 *28 May 2024*
+
+> [!TIP]
+>
+> *24 December 2024*: this issue is resolved. See note "Scale Physics with the Camera".
 
 I have been exploring many aspects of physics in SpriteKit. My project is based on physics, and I need to understand how SpriteKit simulation engine works and what are its limitations.
 
@@ -1664,6 +1684,8 @@ shape.path = path
 
 *14 March 2024, updated 4 December 2024*
 
+Code samples to select nodes in SpriteKit:
+
 ```swift
 // Get all nodes in the scene
 // `//.` means "select all nodes starting from the scene root"
@@ -1793,7 +1815,7 @@ label.verticalAlignmentMode = .center
 addChild(label)
 ```
 
-## Fonts
+## Adding a Font to Xcode
 
 *13 March 2024*
 
@@ -1973,20 +1995,33 @@ The `centerRect` property takes a `CGRect` that defines the central area of the 
 Here’s a helper function to easily set centerRect based on corner widths and heights:
 
 ```swift
-/// Calculates the center rect for 9-slice scaling.
-/// - Parameters:
-///   - cornerWidth: Width of the corner parts.
-///   - cornerHeight: Height of the corner parts.
-///   - sprite: The SKSpriteNode to slice.
-/// - Returns: A CGRect for the center rectangle.
-func calculateCenterRect(cornerWidth: CGFloat, cornerHeight: CGFloat, sprite: SKSpriteNode) -> CGRect {
-    guard let textureSize = sprite.texture?.size() else { return .zero }
-    
-    let centerSliceRect = CGRect(x: cornerWidth / textureSize.width,
-                                 y: cornerHeight / textureSize.height,
-                                 width: (textureSize.width - 2 * cornerWidth) / textureSize.width,
-                                 height: (textureSize.height - 2 * cornerHeight) / textureSize.height)
-    
+/**
+
+Calculates the CGRect for the center part of a 9-slice sprite.
+- Parameter cornerWidth: The width of the square that represents the non stretchable parts of the texture
+- Parameter cornerHeight: The height of the square that represents the non stretchable parts of the texture
+- Parameter sprite: The SKSpriteNode for which to calculate the center rect
+- Returns: A CGRect representing the center rectangle for 9-slice scaling
+
+Updated: 3 December 2024
+
+*/
+func setCenterRect(cornerWidth: CGFloat, cornerHeight: CGFloat, spriteNode: SKSpriteNode) -> CGRect {
+    guard let textureSize = spriteNode.texture?.size() else {
+        return .zero
+    }
+
+    let totalWidth = textureSize.width
+    let totalHeight = textureSize.height
+
+    let centerSliceWidth = totalWidth - (cornerWidth * 2)
+    let centerSliceHeight = totalHeight - (cornerHeight * 2)
+
+    let centerSliceRect = CGRect(x: cornerWidth / totalWidth,
+                                 y: cornerHeight / totalHeight,
+                                 width: centerSliceWidth / totalWidth,
+                                 height: centerSliceHeight / totalHeight)
+
     return centerSliceRect
 }
 ```
@@ -2252,6 +2287,8 @@ class MyScene: SKScene {
 
 ## SKScene Transition
 
+Code samples for transitioning between scenes:
+
 ``` swift
 class Scene1: SKScene {
     let sceneToTransitionTo = Scene2(size: size)
@@ -2266,6 +2303,8 @@ class Scene2: SKScene {
 ```
 
 ## Node Creation
+
+Code samples for creating SpriteKit nodes:
 
 ```swift
 // empty node
@@ -2508,7 +2547,7 @@ if myNode.frame.contains(touchLocation) {
 
 ---
 
-## Code samples
+## Various Code samples
 
 ```swift
 func generateRandomArray() -> [CGFloat] {
