@@ -6,13 +6,13 @@
 
 A few months ago, I was exploring building the UI with physics. My app is an infinite canvas playground with a camera that zooms (scales). Therefore, physical bodies that are children of the camera (i.e. the UI) are scaled with the camera. This introduced many scaling issues, especially with non linear physics behavior such as those based on springs. The issue was that physics bodies live in scene coordinates (`physicsWorld`), while children of the camera are converted from scene coordinates to camera coordinates. This messes up with the position of physics joints. In addition, scaling a physics body does not scale the collision threshold. The finite distances the physics engine deals with are still defined in scene space. When two neighboring bodies are scaled 1/10 of their size, they may overlap or show instabilities.
 
-See the video below: as I zoom in or out with the camera, the spring joint length changes, and inevitably the effect breaks. The simulation does what it's supposed to do, but from a user perspective, it doesn't work.
+See the video below: as I zoom in or out with the camera, the spring joint length changes, and inevitably the effect breaks. The simulation does what it's supposed to do, but from the camera perspective, it doesn't work.
 
 https://github.com/user-attachments/assets/5799ad39-f546-4abc-a8e7-dd5e61312270
 
 Fast forward to the past few weeks. I was working on a feature to record a SpriteKit view. I needed a way to output a sequence of frames from any SpriteKit animation, and be able to choose which nodes get rendered. This ended up involving a setup that moves nodes around at specific steps of the SpriteKit run loop:
 
-<img src="Screenshots/SpriteKit Run Loop.png" alt="SpriteKit Run Loop" style="zoom:50%;" />
+<img src="Screenshots/SpriteKit Run Loop.png" alt="SpriteKit Run Loop" style="width:50%;" />
 
 I got a working solution by executing codes at different moments between `update` and `didFinishUpdate`, and it gave me an idea: can I use that for my physics UI?
 
@@ -20,8 +20,6 @@ It turns out, yes! For each frame, we can move nodes around and stabilize the si
 
 ```swift
 let physicsLayer = SKNode()
-
-/// Add physics bodies to the physics layer
 
 override func update(_ currentTime: TimeInterval) {
     putPhysicalObjectsInScene()
