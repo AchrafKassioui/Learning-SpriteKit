@@ -1,5 +1,27 @@
 # Learning SpriteKit
 
+## SpriteKit Physics Issues
+
+*Started 1 January 2025, updated 7 January 2025*
+
+- Fixed joints are unstable if the two connected nodes have a different `zRotation`. A workaround is to either set the two nodes to the same zRotation before joining their bodies, or use a pin joint with the following configuration:
+
+  ```swift
+  let joint = SKPhysicsJointPin.joint(
+      withBodyA: nodeA.physicsBody!,
+      bodyB: nodeB.physicsBody!,
+      anchor: nodeB.position // The anchor point will lead to different behaviors if one of the node is dragged using position
+  )
+  joint.shouldEnableLimits = true // This will maintain a rigid connection as much as the simulation allows
+  physicsWorld.add(joint)
+  ```
+
+  The behavior of that angle-constrained pin joint won't be exactly similar to a fixed joint. For example, if you drag a node connected with a pin joint by setting its position, the pin joint may still rotate depending on the anchor point position and forces acting on the other body. However, the pin joint will behave closer to a fixed joint if you drag the node by setting its velocity instead.
+
+- The physics debug outline `skview.showsPhysics = true` of a physics body that was created from a texture isn't always accurate. Scenario: take a sprite whose physics body was created with `sprite.physicsBody = SKPhysicsBody(texture: texture, size: sprite.size)`, scale the sprite to 1 in `update`, then scale it to another value in `didFinishUpdate` just before rendering by SKView. You'll see that the physics outline has scaled with the sprite, while it shouldn't, because physics simulation was done before the sprite was scaled. The debug outline should show the shape and size of the body as it was simulated. Physics bodies created with other initializers such as `SKPhysicsBody(rectangleOf: sprite.size)` don't have that problem. Their outline properly shows the size and scale of the physics body as it was during the simulation step of the run loop. Fortunately, physics bodies created with textures seem to behave correctly in that scenario. The issue is with how `skview.showsPhysics` doesn't accurately reflect their shape in the simulation.
+
+- If `physicsWorld.gravity` is set stronger than Earth’s gravity (e.g., -20 or -30 instead of -9.8), bodies on the ground never fully settle. They keep bouncing slightly above the collision surface. Lowering the `restitution` can reduce the jitter, but it limits the range of physical behaviors you can achieve. Replacing the default gravity with a linear gravity field produces the same result.
+
 ## Scale Physics with Camera
 
 *22 December 2024*
@@ -1277,7 +1299,7 @@ Below is a list of people from Apple who were involved with the development of S
 
 *8 April 2024*
 
-Within your SpriteKit code, you can access some interesting properties of the view containing the SpriteKit scene.
+Within your SpriteKit code, you can access some interesting properties of the view rendering the SpriteKit scene.
 
 ```swift
 override func didMove(to view: SKView) {
