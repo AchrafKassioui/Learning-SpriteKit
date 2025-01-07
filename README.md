@@ -99,7 +99,7 @@ import SpriteKit
 
 class SpriteKitUIKitViewController: UIViewController {
     
-	/// Hide the status bar (clock, signal, and battery indicators)
+    /// Hide the status bar (clock, signal, and battery indicators)
     override var prefersStatusBarHidden: Bool {
         return true
     }
