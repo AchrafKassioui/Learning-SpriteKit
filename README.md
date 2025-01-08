@@ -24,7 +24,9 @@
 
 - If you want to keep an object straight up using physics, as if it was balanced on a stick, you can disable its rotation with `myNode.physicsBody?.allowsRotation = false`. This is particularly useful when such body is connected to another one using a pin joint. Example: the label below is a child of a circular body which is connected to the red sprite with a pin joint. The anchor of the joint is the red sprite position. No matter the position and rotation of the red sprite, the circle and label remain "up", because the rotation on the circle body is disabled.
 
+<p align="center">
 <img src="Screenshots/SpriteKit - Straight Up Joined Node.png" alt="SpriteKit - Straight Up Joined Node" style="width:25%;" />
+</p>
 
 ## SpriteKit Physics Issues
 
