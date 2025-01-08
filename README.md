@@ -47,11 +47,8 @@
   The behavior of that angle-constrained pin joint won't be exactly similar to a fixed joint. For example, if you drag a node connected with a pin joint by setting its position, the pin joint may still rotate depending on the anchor point position and the forces acting on the other body. However, the pin joint will behave more like a fixed joint if you drag the node by setting its velocity instead. If the simulation alone is driving the node, the pin joint behaves like a fixed joint, and releases the excess stress on the anchor point.
 
 - The physics debug outline `skview.showsPhysics = true` of a physics body that was created from a texture isn't always accurate. Example: in the video below, both the red sprite and the black triangle have a physics body generated from their visual texture. These sprites are processed with the technique explained in the note "Scale Physics with Camera." They are simulated at native scene scale, then scaled back up before rendering by SKView, therefore allowing to attach physics objects to the camera at any zoom level. When the camera is moved or scaled, we can see the physics outline stay in scene space, as they should—execpt the body of the red sprite. Fortunately the red sprite behave as expected in the simulation, but its debug physics shape doesnt accurately reflect its state in the simulation.
+https://github.com/user-attachments/assets/f0bea366-356b-4198-8bed-be0a52217eb7
   
-  <p align="center">
-  https://github.com/user-attachments/assets/f0bea366-356b-4198-8bed-be0a52217eb7
-  </p>
-
 - If `physicsWorld.gravity` is set stronger than Earth’s gravity (e.g., -20 or -30 instead of -9.8), bodies on the ground never fully settle. They keep bouncing slightly above the collision surface. Lowering the `restitution` can reduce the jitter, but it limits the range of physical behaviors you can achieve. Replacing the default gravity with a linear gravity field produces the same result.
 
 ## Scale Physics with Camera
