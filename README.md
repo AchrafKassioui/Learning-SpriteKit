@@ -1,5 +1,31 @@
 # Learning SpriteKit
 
+## SpriteKit Physics Tips
+
+*4 January 2025, updated 8 January 2025*
+
+- If you use [9 parts slicing](https://developer.apple.com/documentation/spritekit/skspritenode/resizing_a_sprite_in_nine_parts) on a sprite AND use the sprite's texture for physics, make sure to update the physics texture after the 9 parts slicing. For example:
+
+  ```swift
+  let spriteTexture = SKTexture(imageNamed: "stretchable_texture")
+  
+  let sprite = SKSpriteNode(texture: texture)
+  sprite.centerRect = // Setup the 9 parts slicing here
+  
+  // Get the new texture from view after slicing, for accurate physics
+  guard let stretchedTexture = view.texture(from: sprite) else { return }
+  
+  sprite.physicsBody = SKPhysicsBody(texture: stretchedTexture, size: sprite.size)
+  ```
+
+- Some physics properties accept values larger than the ranges specified in the documentation. Examples:
+
+  - `pinJoint.frictionTorque`: the documentation says that the range is [0,1]. But the property accepts values larger than 1. In fact, if a rotation speed is set on the joint, you'll probably need to significantly increase the friction torque to counter the forces constraining the body from spinning around the joint's anchor point.
+
+- If you want to keep an object straight up using physics, as if it was balanced on a stick, you can disable its rotation with `myNode.physicsBody?.allowsRotation = false`. This is particularly useful when such body is connected to another one using a pin joint. Example: the label below is a child of a circular body which is connected to the red sprite with a pin joint. The anchor of the joint is the red sprite position. No matter the position and rotation of the red sprite, the circle and label remain "up", because the rotation on the circle body is disabled.
+
+<img src="Screenshots/SpriteKit - Straight Up Joined Node.png" alt="SpriteKit - Straight Up Joined Node" style="width:25%;" />
+
 ## SpriteKit Physics Issues
 
 *Started 1 January 2025, updated 7 January 2025*
