@@ -38,13 +38,13 @@
   let joint = SKPhysicsJointPin.joint(
       withBodyA: nodeA.physicsBody!,
       bodyB: nodeB.physicsBody!,
-      anchor: nodeB.position // The anchor point will lead to different behaviors if one of the node is dragged using position
+      anchor: nodeB.position // The pin joint will be rigid around the anchor position (no rotation)
   )
-  joint.shouldEnableLimits = true // This will maintain a rigid connection as much as the simulation allows
+  joint.shouldEnableLimits = true
   physicsWorld.add(joint)
   ```
 
-  The behavior of that angle-constrained pin joint won't be exactly similar to a fixed joint. For example, if you drag a node connected with a pin joint by setting its position, the pin joint may still rotate depending on the anchor point position and the forces acting on the other body. However, the pin joint will behave more like a fixed joint if you drag the node by setting its velocity instead. If the simulation alone is driving the node, the pin joint behaves like a fixed joint, and releases the excess stress on the anchor point.
+  For an even more rigid joint, you can join the nodes with two pin joints: one having the anchor position on node A, and the other joint having the anchor position on node B.
 
 - The physics debug outline `skview.showsPhysics = true` of a physics body that was created from a texture isn't always accurate. Example: in the video below, both the red sprite and the blue triangle have a physics body generated from their visual texture. These sprites are processed with the technique explained in the note "Scale Physics with Camera." When the camera is moved or scaled, we can see the physics outline stay in scene space, as they should—except for the body of the red sprite. Fortunately the red sprite behaves as expected in the simulation, but its physics outline doesn't accurately reflect its shape in the simulation. The blue triangle's body on the other hand is displayed correctly. I've noticed that if I set the triangle to a bigger size, it starts showing the same outline discrepancy as the red sprite's.
 
