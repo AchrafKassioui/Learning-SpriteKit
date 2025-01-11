@@ -30,7 +30,7 @@
 
 ## SpriteKit Physics Issues
 
-*Started 1 January 2025, updated 7 January 2025*
+*Started 1 January 2025, updated 11 January 2025*
 
 - Fixed joints are unstable if the two connected nodes have a different `zRotation`. A workaround is to either set the two nodes to the same zRotation before joining their bodies, or use a pin joint with the following configuration:
 
