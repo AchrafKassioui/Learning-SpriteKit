@@ -53,7 +53,7 @@
   
 - If `physicsWorld.gravity` is set stronger than Earth’s gravity (e.g., -20 or -30 instead of -9.8), bodies on the ground never fully settle. They keep bouncing slightly above the collision surface. Lowering the `restitution` can reduce the jitter, but it limits the range of physical behaviors you can achieve. Replacing the default gravity with a linear gravity field produces the same result.
 
-## Scale Physics with Camera
+## Scaling Physics
 
 *22 December 2024*
 
@@ -1086,7 +1086,7 @@ Then all touch events are delivered to the scene.
 
 > [!TIP]
 >
-> *24 December 2024*: this issue is resolved. See note "Scale Physics with the Camera".
+> *24 December 2024*: this issue is resolved. See note "Scaling Physics".
 
 I have been exploring many aspects of physics in SpriteKit. My project is based on physics, and I need to understand how SpriteKit simulation engine works and what are its limitations.
 
