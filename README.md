@@ -38,7 +38,8 @@
   let joint = SKPhysicsJointPin.joint(
       withBodyA: nodeA.physicsBody!,
       bodyB: nodeB.physicsBody!,
-      anchor: nodeB.position // The pin joint will be rigid around the anchor position (no rotation)
+      // The pin joint will be rigid around the anchor position (no rotation)
+      anchor: nodeB.position
   )
   joint.shouldEnableLimits = true
   physicsWorld.add(joint)
