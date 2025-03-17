@@ -11,24 +11,24 @@ There are two types of interactions:
 - **Contact**: a signal when two bodies overlap, without modifying their physical behavior.
 - **Collision**: A physical interaction that applies forces and prevents bodies from passing through each other.
 
-Each physics body has 4 properties that takes a bit mask value:
+Each physics body has 4 properties that take a bit mask value:
 
 ```swift
 let body = SKPhysicsBody(circleOfRadius: 30)
 body.categoryBitMask = // The category of this body
 body.contactTestBitMask = // Categories this body should notify contacts with
 body.collisionBitMask = // Categories this body should collide with
-body.fieldBitMask = // Categories of a field nodes this body is affected by
+body.fieldBitMask = // Categories of field nodes this body is affected by
 ```
 
-Bitwise operations are used in `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask` properties. For example:
+Bitwise operations are used in the `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask` properties. For example:
 
 ```swift
 struct BitMasks {
-    static let layer1: UInt32 = 1 << 0
-    static let layer2: UInt32 = 1 << 1
-    static let layer3: UInt32 = 1 << 2
-    static let layer4: UInt32 = 1 << 3
+    static let bodyLayer1: UInt32 = 1 << 0
+    static let bodyLayer2: UInt32 = 1 << 1
+    static let bodyLayer3: UInt32 = 1 << 2
+    static let bodyLayer4: UInt32 = 1 << 3
 }
 
 struct FieldBitMasks {
@@ -37,17 +37,17 @@ struct FieldBitMasks {
 }
 
 // Categories
-bodyA.categoryBitMask = BitMasks.layer1
-bodyB.categoryBitMask = BitMasks.layer2
-bodyC.categoryBitMask = BitMasks.layer3
+bodyA.categoryBitMask = BitMasks.bodyLayer1
+bodyB.categoryBitMask = BitMasks.bodyLayer2
+bodyC.categoryBitMask = BitMasks.bodyLayer3
 
 // Contacts
 // If bodyA should detect contacts with both layer2 and layer3, use:
-bodyA.contactTestBitMask = BitMasks.layer2 | BitMasks.layer3
+bodyA.contactTestBitMask = BitMasks.bodyLayer2 | BitMasks.bodyLayer3
 
 // Collision
 // If bodyA should collide with layer2 and layer4, but not layer3, use:
-bodyA.collisionBitMask = BitMasks.layer2 | BitMasks.layer4
+bodyA.collisionBitMask = BitMasks.bodyLayer2 | BitMasks.bodyLayer4
 
 // Fields
 // bodyB will be affected by field nodes of this category
@@ -70,10 +70,49 @@ let bitmask: UInt32 = 0x80000000
 let bitmask: UInt32 = 0b10000000000000000000000000000000
 ```
 
-There are 32 distinct values of UInt32 numbers we can assign to a `categoryBitMask`, from `1 << 0` to `1 << 31`.In SpriteKit, there are two independent groups of category bit masks, each accepting up to 32 distinct values:
+We can assign 32 distinct values to a categoryBitMask, ranging from `1 << 0` to `1 << 31`. Here’s the full list:
 
-- Physics bodies of type `SKPhysicsBody`, whose category is set by `physicsBody.categoryBitMask`.
-- Field nodes of type `SKFieldNode`, whose category is set by `field.categoryBitMask`.
+```swift
+let categoryBitMask0:  UInt32 = 1 << 0   // 0b00000000000000000000000000000001
+let categoryBitMask1:  UInt32 = 1 << 1   // 0b00000000000000000000000000000010
+let categoryBitMask2:  UInt32 = 1 << 2   // 0b00000000000000000000000000000100
+let categoryBitMask3:  UInt32 = 1 << 3   // 0b00000000000000000000000000001000
+let categoryBitMask4:  UInt32 = 1 << 4   // 0b00000000000000000000000000010000
+let categoryBitMask5:  UInt32 = 1 << 5   // 0b00000000000000000000000000100000
+let categoryBitMask6:  UInt32 = 1 << 6   // 0b00000000000000000000000001000000
+let categoryBitMask7:  UInt32 = 1 << 7   // 0b00000000000000000000000010000000
+let categoryBitMask8:  UInt32 = 1 << 8   // 0b00000000000000000000000100000000
+let categoryBitMask9:  UInt32 = 1 << 9   // 0b00000000000000000000001000000000
+let categoryBitMask10: UInt32 = 1 << 10  // 0b00000000000000000000010000000000
+let categoryBitMask11: UInt32 = 1 << 11  // 0b00000000000000000000100000000000
+let categoryBitMask12: UInt32 = 1 << 12  // 0b00000000000000000001000000000000
+let categoryBitMask13: UInt32 = 1 << 13  // 0b00000000000000000010000000000000
+let categoryBitMask14: UInt32 = 1 << 14  // 0b00000000000000000100000000000000
+let categoryBitMask15: UInt32 = 1 << 15  // 0b00000000000000001000000000000000
+let categoryBitMask16: UInt32 = 1 << 16  // 0b00000000000000010000000000000000
+let categoryBitMask17: UInt32 = 1 << 17  // 0b00000000000000100000000000000000
+let categoryBitMask18: UInt32 = 1 << 18  // 0b00000000000001000000000000000000
+let categoryBitMask19: UInt32 = 1 << 19  // 0b00000000000010000000000000000000
+let categoryBitMask20: UInt32 = 1 << 20  // 0b00000000000100000000000000000000
+let categoryBitMask21: UInt32 = 1 << 21  // 0b00000000001000000000000000000000
+let categoryBitMask22: UInt32 = 1 << 22  // 0b00000000010000000000000000000000
+let categoryBitMask23: UInt32 = 1 << 23  // 0b00000000100000000000000000000000
+let categoryBitMask24: UInt32 = 1 << 24  // 0b00000001000000000000000000000000
+let categoryBitMask25: UInt32 = 1 << 25  // 0b00000010000000000000000000000000
+let categoryBitMask26: UInt32 = 1 << 26  // 0b00000100000000000000000000000000
+let categoryBitMask27: UInt32 = 1 << 27  // 0b00001000000000000000000000000000
+let categoryBitMask28: UInt32 = 1 << 28  // 0b00010000000000000000000000000000
+let categoryBitMask29: UInt32 = 1 << 29  // 0b00100000000000000000000000000000
+let categoryBitMask30: UInt32 = 1 << 30  // 0b01000000000000000000000000000000
+let categoryBitMask31: UInt32 = 1 << 31  // 0b10000000000000000000000000000000
+```
+
+This provides 32 unique categories. These values can be combined using bitwise OR `|` for `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask`.
+
+In SpriteKit, there are two independent groups of category bit masks, each allowing up to 32 individual categories:
+
+- Physics bodies of type `SKPhysicsBody`, categorized by `physicsBody.categoryBitMask`.
+- Field nodes of type `SKFieldNode`, categorized by `field.categoryBitMask`.
 
 In addition to the 32 distinct values, there are two other useful values:
 
