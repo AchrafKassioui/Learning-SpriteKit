@@ -1,8 +1,212 @@
 # Learning SpriteKit
 
+## Bit Masks
+
+*17 March 2025*
+
+Bit masks and bitwise operations are used in SpriteKit physics engine. Bit masks are used to represent the category of a physics body. Bitwise operations determine how that body interacts with others.
+
+There are two types of interactions:
+
+- **Contact**: a signal when two bodies overlap, without modifying their physical behavior.
+- **Collision**: A physical interaction that applies forces and prevents bodies from passing through each other.
+
+Each physics body has 4 properties that takes a bit mask value:
+
+```swift
+let body = SKPhysicsBody(circleOfRadius: 30)
+body.categoryBitMask = // The category of this body
+body.contactTestBitMask = // Categories this body should notify contacts with
+body.collisionBitMask = // Categories this body should collide with
+body.fieldBitMask = // Categories of a field nodes this body is affected by
+```
+
+Bitwise operations are used in `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask` properties. For example:
+
+```swift
+struct BitMasks {
+    static let layer1: UInt32 = 1 << 0
+    static let layer2: UInt32 = 1 << 1
+    static let layer3: UInt32 = 1 << 2
+    static let layer4: UInt32 = 1 << 3
+}
+
+struct FieldBitMasks {
+    static let fieldLayer1: UInt32 = 1 << 0
+    static let fieldLayer2: UInt32 = 1 << 1
+}
+
+// Categories
+bodyA.categoryBitMask = BitMasks.layer1
+bodyB.categoryBitMask = BitMasks.layer2
+bodyC.categoryBitMask = BitMasks.layer3
+
+// Contacts
+// If bodyA should detect contacts with both layer2 and layer3, use:
+bodyA.contactTestBitMask = BitMasks.layer2 | BitMasks.layer3
+
+// Collision
+// If bodyA should collide with layer2 and layer4, but not layer3, use:
+bodyA.collisionBitMask = BitMasks.layer2 | BitMasks.layer4
+
+// Fields
+// bodyB will be affected by field nodes of this category
+bodyB.fieldBitMask = FieldBitMasks.fieldLayer1
+```
+
+Bit masks and bitwise operations in SpriteKit use the UInt32 type. There are multiple ways of representing a UInt32:
+
+```swift
+// bitwise shift notation
+let bitmask: UInt32 = 1 << 31
+
+// decimal
+let bitmask: UInt32 = 2147483648
+
+// hexadecimal
+let bitmask: UInt32 = 0x80000000
+
+// binary (Swift uses the prefix `0b` to indicate binary numbers)
+let bitmask: UInt32 = 0b10000000000000000000000000000000
+```
+
+There are 32 distinct values of UInt32 numbers we can assign to a `categoryBitMask`, from `1 << 0` to `1 << 31`.In SpriteKit, there are two independent groups of category bit masks, each accepting up to 32 distinct values:
+
+- Physics bodies of type `SKPhysicsBody`, whose category is set by `physicsBody.categoryBitMask`.
+- Field nodes of type `SKFieldNode`, whose category is set by `field.categoryBitMask`.
+
+In addition to the 32 distinct values, there are two other useful values:
+
+```swift
+// Interact with all bitmasks (0b1111...1111)
+let all: UInt32 = UInt32.max
+
+// Interact with nothing (0b0000...0000)
+let none: UInt32 = 0
+```
+
+A category bit mask of 0 will exclude it from all interactions, including the category with UInt32.max. It makes invisible to all physics interactions.
+
+## Contact Detection
+
+*13 March 2025*
+
+Use this boilerplate to setup physics contact detection in a SpriteKit scene:
+
+```swift
+// Conform to SKPhysicsContactDelegate protocol
+class MyScene: SKScene, SKPhysicsContactDelegate {
+    
+    override func didMove(to view: SKView) {
+        // Assign this scene as the delegate for the protocol
+        physicsWorld.contactDelegate = self
+    }
+    
+    // Contact protocol methods
+    // Called when two bodies start intersecting
+    func didBegin(_ contact: SKPhysicsContact) {
+        
+    }
+    
+    // Called when two bodies that were intersecting stop intersecting
+    func didEnd(_ contact: SKPhysicsContact) {
+        
+    }
+}
+```
+
+Then, for each body you want contact information from, set up their `categoryBitMask` and  `contactBitMask`:
+
+```swift
+nodeA.physicsBody?.categoryBitMask = 1 << 0
+nodeB.physicsBody?.categoryBitMask = 1 << 1
+
+// Get signaled when node A is in contact with node B
+nodeA.physicsBody?.contactTestBitMask = 1 << 1
+
+// Get signaled when node A is in contact with any other category (except category 0)
+nodeA.physicsBody?.contactTestBitMask = UInt32.max
+```
+
+The `didBegin` and `didEnd` functions are called when two physics bodies start overlapping and stop overlapping, respectively. To use these functions, the scene must conform to the `SKPhysicsContactDelegate` protocol. This means that you need to add `SKPhysicsContactDelegate` to your scene class declaration. Then, the scene's `physicsWorld` must have its `contactDelegate` property set to the scene itself, `self`.
+
+Once set up, the contacts methods will be called whenever two physics bodies overlap, if their `categoryBitMask` and `contactTestBitMask` properties are configured to detect each other. The `contact` object provides details about the bodies that have come into contact.
+
+## Toggle Metal HUD
+
+*31 January 2025*
+
+The [Metal Performance HUD](https://developer.apple.com/documentation/xcode/monitoring-your-metal-apps-graphics-performance) is a very useful debug tool. Below is how it looks on a SpriteKit view.
+
+<p align="center">
+<img src="Screenshots/SKView - Metal HUD.jpeg" alt="SKView - Metal HUD" style="width:33%;" />
+</p>
+Metal HUD can be toggled in the Developer section of iOS Settings. It will be displayed for all apps installed via Xcode and TestFlight. It can also be toggled programmatically in your app during runtime.
+
+First, add a `MetalHudEnabled` key to your project plist (info) file, and set its value to YES.
+
+<img src="Screenshots/Xcode - MetalHudEnabled.png" alt="Xcode - MetalHudEnabled"  />
+
+Then, use this code to toggle the HUD programmatically, wherever you have a reference to the SKView rendering the SKScene:
+
+```swift
+func toggleMetalHUD(skView: SKView, enabled: Bool) {
+    guard let metalLayer = skView.layer as? CAMetalLayer else { return }
+    metalLayer.developerHUDProperties = enabled ? [
+        "mode": "default",
+        "logging": "default"
+    ] : [:]
+}
+
+/// Usage
+toggleMetalHUD(skView: view, enabled: true)
+```
+
+## SpriteKit Physics Miscellanea
+
+*1 February 2025*
+
+- Set `physicsWorld.speed = 0.1`, then print the value `print(physicsWorld.speed)`. The output will be `0.10000000149011612`.
+
 ## SpriteKit Physics Tips
 
-*4 January 2025, updated 8 January 2025*
+*4 January 2025, updated 28 February 2025*
+
+- In order to animate the size change of a physics body, use a scale action or manually animate the scale of the node owning the physics body. Example:
+  ```swift
+  let sprite = SKSpriteNode(texture: texture)
+  sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
+  
+  let action = SKAction.sequence([
+      SKAction.wait(forDuration: 1),
+      SKAction.run {
+          print(sprite.physicsBody?.mass) // 0.444444477558136
+      },
+      SKAction.scaleX(to: 2, y: 1, duration: 1),
+      SKAction.run {
+          print(sprite.physicsBody?.mass) // 0.8839642405509949
+      }
+  ])
+  sprite.run(action)
+  ```
+
+  Printing the physics body mass shows that the physics body is properly updated after the scale change. Moreover, if we print the size of the sprite, we can see that the size is correctly updated too. We can also scale the sprite to a specific size like so:
+  ```swift
+  SKAction.scale(to: CGSize(width: 200, height: 100), duration: 1)
+  ```
+  However, resizing the sprite in one of these ways:
+  ```swift
+  SKAction.resize(toWidth: 200, height: 100, duration: 1)
+  // or
+  sprite.size = CGSize(width: 200, height: 100)
+  ```
+  won't update the physics body attached to the sprite. Only its texture would resize.
+  
+- SpriteKit applies some processing to paths passed on polygon for SKPhysicsBody. For example, a rectangular path can be created with smooth corners using some of CGPath methods. Once the path is used to create a physics body, SpriteKit will segment the rounded corners into a few straight lines, most likely for performance reasons.
+
+<p align="center">
+<img src="Screenshots/SpriteKit - Body from Path.jpeg" alt="SpriteKit - Body from Path" style="width:25%;" />
+</p>
 
 - If you use [9 parts slicing](https://developer.apple.com/documentation/spritekit/skspritenode/resizing_a_sprite_in_nine_parts) on a sprite AND use the sprite's texture for physics, make sure to update the physics texture after the 9 parts slicing. For example:
 
@@ -903,30 +1107,6 @@ node.constraints?.append(orientConstraint)
 
 SpriteKit constraints are applied just before `didFinishUpdate`. There is a callback called `didApplyConstraints` that fires when constraints have been applied.
 
-## Physics Collision
-
-*15 October 2024*
-
-Boilerplate for setting up collision detection:
-
-```swift
-class MyScene: SKScene, SKPhysicsContactDelegate {
-    
-    override func didMove(to view: SKView) {
-        //..
-        physicsWorld.contactDelegate = self
-    }
-    
-    func didBegin(_ contact: SKPhysicsContact) {
-        
-    }
-}
-```
-
-The `didBegin` function is called when two physics bodies make contact. To use this function, the scene must conform to the `SKPhysicsContactDelegate` protocol. This means that you need to add `SKPhysicsContactDelegate` to your scene class declaration. Additionally, the scene's `physicsWorld` must have its `contactDelegate` property set to the scene itself, `self`.
-
-Once set up, the `didBegin` method will be called whenever two physics bodies, whose `contactTestBitMask` properties are configured to detect contact, come into contact in the physics simulation. The `SKPhysicsContact` object provides collision details about the bodies that have come into contact.
-
 ## UI
 
 *19 June 2024*
@@ -1544,9 +1724,9 @@ Mind you that Core Graphics is a framework optimized for quality rather than per
 
 ## Core Image Filters in SpriteKit
 
-*9 November 2024*
+*9 November 2024, updated 6 March 2025*
 
-If we enable Core Image filters on the scene itself, we observe this:
+If we enable Core Image filters on a scene with a camera, we observe this:
 
 <img src="Screenshots/SpriteKit - Scene Filters OFF.png" alt="SpriteKit - Scene Filters OFF" style="width:33%;" />
 
@@ -1556,7 +1736,7 @@ If we enable Core Image filters on the scene itself, we observe this:
 import SpriteKit
 import CoreImage.CIFilterBuiltins
 
-class BasicECScene: SKScene {
+class MyScene: SKScene {
     override func didMove(to view: SKView) {
         size = view.bounds.size
         
@@ -1572,29 +1752,21 @@ class BasicECScene: SKScene {
 }
 ```
 
-The first image is with `shouldEnableEffects = false`, the second image is with `shouldEnableEffects = true`. Notice how the circle is now cropped to the upper right quadrant. Note also that we are using a camera node. When a SpriteKit view uses a camera, the origin of the scene is placed at the middle of the screen instead of the original lower bottom corner of the screen, because we're seeing the scene from the camera's perspective, which is at `CGPoint.zero`. Therefore the positive axises x and y of the scene extend from the middle of the screen toward the right and the top.
-
-It seems that when filters are enabled on the scene itself, SpriteKit renderer limits the visible part to the size of the scene itself, which in this case is the size of the view.
-
-*5 June 2024*
-
-If filters are enabled on the scene and if there is a camera that is zoomed out:
+The first image is with `shouldEnableEffects = false`, the second image is with `shouldEnableEffects = true`. Notice how the filtered render is now cropped to the upper right quadrant. We can fix this by setting the anchor point of the scene like this:
 
 ```swift
-import CoreImage.CIFilterBuiltins
-
-override func didMove(to view: SKView) {
-    size = view.bounds.size
-    filter = CIFilter.motionBlur()
-	shouldEnableEffects = true
-    
-    let myCamera = SKCameraNode()
-    myCamera.setScale(3)
-    camera = myCamera
+class MyScene: SKScene {
+    override func didMove(to view: SKView) {
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
+    }
 }
 ```
 
-The scene will appear cropped to the size it was initialized with. SpriteKit automatically limits the area that is rendered and filtered. This is probably due to the Metal Texture size limit, which mirrors the limits of the maximum width and height that the GPU can handle. By default, SpriteKit uses the scene size as the texture size that is processed by Core Image. Remember: scene size is a convenience property. The scene itself is infinite. Its size defines the area that is presented by the view.
+The filter will then apply to the whole view. Note that if the camera is zoomed out or in, there will be some cropping (zoom out) or down sampling (zoom in) when Core Image filters are applied. This is likely an internal SpriteKit choice to control texture rendering size. 
+
+However, it is possible to apply Core Image filters to whatever SKView renders, using an elaborate setup and `view.texture(from:crop:).applying(_ :CIFilter)`.
+
+*5 June 2024*
 
 If Core Image filters are applied on a separate effect node instead of the scene itself, the renderer will crash if the accumulated size of the effect node exceeds the Metal size limit. For example, if you write this:
 
@@ -1614,7 +1786,7 @@ effectLayer.addChild(sprite2)
 
 The renderer will crash, because the accumulated size of the effect node, 10150x150 points, exceeds the Metal texture size that any Apple GPU can handle, which is 16384x16384. The size of the effect node is in points. When converted into pixels, each points is represented by 2 or 3 pixels on Retina displays, which puts the effect layer above 20 or 30k pixels across.
 
-Even if you control the placement of your nodes, large accumulated sizes can quickly happen, for example with a particle emitter. Particles subject to a physics field node can be projected very far away, exceeding the extent of the texture that Core Image, and therefore the GPU, can process.
+Even if you control the placement of your nodes, large accumulated sizes can quickly happen, for example with a particle emitter. Particles subject to a physics field node can be projected very far away, exceeding the extent of the texture that the GPU can process.
 
 *14 May 2024*
 
@@ -1638,7 +1810,7 @@ In order to get a larger effect area, filters should be applied on a dedicated e
 
 *12 April 2024*
 
-When you apply a Core Image filter in SpriteKit, it's important to understand the difference between a screen-space effect and an object-space or scene-space effect. Filters are always applied through `SKEffectNode`, therefore, the filter's effects will be drawn relative to that node. A node moving inside the effect node will "traverse" the effect applied on the effect node. For example, if you apply a pointillize effect, the dots will "belong" to the effect node, not to the nodes inside it. If you want the dots to "travel" with a moving node, you have to move the effect node itself. At which point, you might as well produce a static texture with Core Image, that you use as an `SKTexture` for a sprite node, which is better for performance.
+When you apply a Core Image filter in SpriteKit, it's important to understand the difference between a screen-space effect and an object-space or scene-space effect. When filters are applied through `SKEffectNode`, the filter's effects will be drawn relative to that node. A node moving inside the effect node will "traverse" the effect applied on the effect node. For example, if you apply a pointillize effect, the dots will "belong" to the effect node, not to the nodes inside it. If you want the dots to "travel" with a moving node, you have to move the effect node itself. At which point, you might as well produce a static texture with Core Image, that you use as an `SKTexture` for a sprite node, which is better for performance.
 
 Screen recordings:
 
@@ -1670,7 +1842,7 @@ Links
 
 *14 March 2024*
 
-**TL;DR**: Nodes of type `SKShapeNode` can generate shapes with code, providing the ability to draw and edit shapes dynamically during runtime. SpriteKit's ability to generate accurate physics bodies for shape nodes is more limited than it is with sprite nodes. When rendered, a shape node is rasterized, so when it's drawn in a size other than its native size, some filtering is applied (blurring or aliasing).
+**TL;DR**: Nodes of type `SKShapeNode` can generate shapes with code, providing the ability to draw and edit shapes dynamically during runtime. When rendered, a shape node is rasterized, so when it's drawn in a size other than its native size, some filtering is applied (blurring or aliasing).
 
 Nodes of type `SKShapeNode` are generated procedurally. Their shape, color fill, and border style are defined with code. By default, a shape is transparent (it has no fill color) and has a one-point thick white border.
 
@@ -1708,8 +1880,6 @@ In SpriteKit, you can draw shapes using:
 - Path, from arcs of a circle
 - Path, with straight lines from a collection of points
 - Path, with curved lines from a collection of points, where pairs of point are joined with a quadratic curve
-
-A note about `SKShapeNode` rendering: even though shapes are procedural, like a vector shape would be, SpriteKit's renderer itself rasterize the shape during runtime. In fact, every node that draws is rasterized by SpriteKit's renderer, visually behaving like a sprite. Therefore, if you zoom in on shape node, if it its counters do not snap to the pixel grid, it will be either blurred or aliased, depending on the node's filtering mode.
 
 Here are other useful code samples:
 
@@ -2570,10 +2740,6 @@ cameraNode.position = CGPoint(x: size.width/2, y: size.height/2)
 ## Events
 
 ```swift
-// Whether a node receives touch events. Default = false
-// I find this to be unreliable. Nodes receive touch events in most of my experiments. Setting this property false wouldn't just stop that node from receiving events. This property may be relevant to custom subclasses of nodes, such as a sublcass of SKSpriteNode.
-myNode.isUserInteractionEnabled = Bool
-
 // touch began
 override func touchesBegan(_ touches: Set<UITouch>,  with event: UIEvent?) {
     for touch in touches {
@@ -2714,6 +2880,13 @@ class SpriteKitScene: SKScene {
 - https://github.com/kodecocodes/SKTUtils
 - SwiftUI + SpriteKit: https://youtube.com/watch?v=nduPV7-3NtM&t=399
 - 🔈 [Building 3D Apps with SceneKit](https://www.mergeconflict.fm/184), Merge Conflict podcast
+
+## Reading History
+
+Various SpriteKit related articles I read or opened at some point.
+
+- [A Physics Component for an Entity Component System in SpriteKit](https://simonfairbairn.com/physics-component-for-entity-component-system-spritekit/)
+- [iOS 8: What's New in SpriteKit, Part 1](https://web.archive.org/web/20160820163646/http://code.tutsplus.com/tutorials/ios-8-whats-new-in-spritekit-part-1--cms-22387)
 
 ---
 
