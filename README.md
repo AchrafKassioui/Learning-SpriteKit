@@ -125,7 +125,7 @@ let all: UInt32 = UInt32.max
 let none: UInt32 = 0
 ```
 
-A category bit mask of 0 will exclude it from all interactions, including the category with UInt32.max. It makes invisible to all physics interactions.
+A category bit mask of 0 will exclude it from all interactions, including the category with UInt32.max. Category 0 makes the body invisible to all physics interactions.
 
 ## Contact Detection
 
