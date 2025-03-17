@@ -24,6 +24,7 @@ body.fieldBitMask = // Categories of field nodes this body is affected by
 Bitwise operations are used in the `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask` properties. For example:
 
 ```swift
+// Store some categories in a data structure
 struct BitMasks {
     static let bodyLayer1: UInt32 = 1 << 0
     static let bodyLayer2: UInt32 = 1 << 1
@@ -36,20 +37,20 @@ struct FieldBitMasks {
     static let fieldLayer2: UInt32 = 1 << 1
 }
 
-// Categories
+// Define categories
 bodyA.categoryBitMask = BitMasks.bodyLayer1
 bodyB.categoryBitMask = BitMasks.bodyLayer2
 bodyC.categoryBitMask = BitMasks.bodyLayer3
 
-// Contacts
+// Define contacts
 // If bodyA should detect contacts with both layer2 and layer3, use:
 bodyA.contactTestBitMask = BitMasks.bodyLayer2 | BitMasks.bodyLayer3
 
-// Collision
+// Define collisions
 // If bodyA should collide with layer2 and layer4, but not layer3, use:
 bodyA.collisionBitMask = BitMasks.bodyLayer2 | BitMasks.bodyLayer4
 
-// Fields
+// Define fields
 // bodyB will be affected by field nodes of this category
 bodyB.fieldBitMask = FieldBitMasks.fieldLayer1
 ```
@@ -70,7 +71,7 @@ let bitmask: UInt32 = 0x80000000
 let bitmask: UInt32 = 0b10000000000000000000000000000000
 ```
 
-We can assign 32 distinct values to a categoryBitMask, ranging from `1 << 0` to `1 << 31`. Here’s the full list:
+We can assign 32 individual values to a categoryBitMask, ranging from `1 << 0` to `1 << 31`. Here’s the full list:
 
 ```swift
 let categoryBitMask0:  UInt32 = 1 << 0   // 0b00000000000000000000000000000001
@@ -107,7 +108,7 @@ let categoryBitMask30: UInt32 = 1 << 30  // 0b01000000000000000000000000000000
 let categoryBitMask31: UInt32 = 1 << 31  // 0b10000000000000000000000000000000
 ```
 
-This provides 32 unique categories. These values can be combined using bitwise OR `|` for `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask`.
+These values can be combined using bitwise OR `|` for `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask`.
 
 In SpriteKit, there are two independent groups of category bit masks, each allowing up to 32 individual categories:
 
