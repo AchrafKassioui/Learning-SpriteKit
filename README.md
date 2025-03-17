@@ -9,7 +9,7 @@ Bit masks and bitwise operations are used in SpriteKit physics engine. Bit masks
 There are two types of interactions:
 
 - **Contact**: a signal when two bodies overlap, without modifying their physical behavior.
-- **Collision**: A physical interaction that applies forces and prevents bodies from passing through each other.
+- **Collision**: a physical interaction that applies forces and prevents bodies from passing through each other.
 
 Each physics body has 4 properties that take a bit mask value:
 
