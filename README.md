@@ -118,10 +118,10 @@ In SpriteKit, there are two independent groups of category bit masks, each allow
 In addition to the 32 distinct values, there are two other useful values:
 
 ```swift
-// Interact with all bitmasks (0b1111...1111)
+// Interact with all bitmasks (0b11111111111111111111111111111111)
 let all: UInt32 = UInt32.max
 
-// Interact with nothing (0b0000...0000)
+// Interact with nothing (0b00000000000000000000000000000000)
 let none: UInt32 = 0
 ```
 
