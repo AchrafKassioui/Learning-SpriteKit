@@ -1,5 +1,37 @@
 # Learning SpriteKit
 
+## Pointers and Objects
+
+*19 March 2025*
+
+Today I realized something fascinating. Consider this code:
+
+```swift
+var sprite = SKSpriteNode(color: .blue, size: CGSize(width: 100, height: 100))
+addChild(sprite)
+sprite = SKSpriteNode(color: .yellow, size: CGSize(width: 100, height: 100))
+```
+
+Will the sprite in the scene be blue or yellow?
+
+Answer: it will be blue!
+
+When the third line assigns a new sprite to the variable `sprite`, it doesn't change the sprite in the scene tree. It changes the *reference* (pointer) to that sprite. The reference `sprite` is now pointing to a new object. The blue sprite itself stays in the scene, in memory, and is managed independently from its old reference `sprite`.
+
+If you have a reference to a node, and you want to change the node itself, not just a property of the node such as position or alpha, you need to remove the node from the scene first, create your new node, assign your reference to that new node, and then add it to the scene. For example:
+
+```swift
+/// Create a field and reference it with a variable
+var field = SKFieldNode.springField()
+addChild(field)
+
+/// Before changing the field, remove it from the scene
+field.removeFromParent()
+field = SKFieldNode.radialGravityField()
+field.strength = -1
+addChild(field)
+```
+
 ## Bit Masks
 
 *17 March 2025*
