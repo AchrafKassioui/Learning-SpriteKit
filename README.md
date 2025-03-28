@@ -1,5 +1,27 @@
 # Learning SpriteKit
 
+## All Contacted Bodies
+
+*28 March 2025*
+
+`allContactedBodies` and physics contacts both report overlapping bodies, but they work differently.
+
+Physics contacts are reported when:
+
+- An object like the SKScene instance itself conforms to the `SKPhysicsContactDelegate` protocol and implements its methods.
+- Two bodies with matching contact bit masks intersect.
+- The contact delegate fires `didBegin` when bodies start touching and `didEnd` when they stop.
+- Contacts are not reported if the contact bit masks do not overlap.
+- By default, a body's contact bit mask is 0, so no contacts are detected.
+- Only contact bit masks matter—collision bit masks do not affect contact detection.
+
+`allContactedBodies` is a read-only property of `SKPhysicsBody` that:
+
+- Reports all bodies currently in contact with this body.
+- Includes bodies that are colliding or have matching contact bit masks.
+- Works if either collision bit masks or contact bit masks overlap.
+- Even if a body's contact bit mask is 0, it will still be reported if it can collide with this body.
+
 ## Pointers and Objects
 
 *19 March 2025*
