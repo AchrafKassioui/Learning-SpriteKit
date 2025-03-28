@@ -4,7 +4,7 @@
 
 *28 March 2025*
 
-`[allContactedBodies](https://developer.apple.com/documentation/spritekit/skphysicsbody/allcontactedbodies())` and physics contacts both report overlapping bodies, but they work differently.
+[`allContactedBodies`](https://developer.apple.com/documentation/spritekit/skphysicsbody/allcontactedbodies()) and physics contacts both report overlapping bodies, but they work differently.
 
 Physics contacts are reported when:
 
