@@ -8,7 +8,7 @@
 
 Physics contacts are reported when:
 
-- An object like the SKScene instance itself conforms to the `SKPhysicsContactDelegate` protocol and implements its methods.
+- An object (e.g., the SKScene instance) conforms to the `SKPhysicsContactDelegate` protocol and implements its methods.
 - Two bodies with matching contact bit masks intersect.
 - The contact delegate fires `didBegin` when bodies start touching and `didEnd` when they stop.
 - Contacts are not reported if the contact bit masks do not overlap.
@@ -21,6 +21,7 @@ Physics contacts are reported when:
 - Includes bodies that are colliding or have matching contact bit masks.
 - Works if either collision bit masks or contact bit masks overlap.
 - Even if a body's contact bit mask is 0, it will still be reported if it can collide with this body.
+- No delegate or automated call is triggered—this function must be manually polled when needed.
 
 ## Pointers and Objects
 
