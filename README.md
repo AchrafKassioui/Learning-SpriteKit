@@ -242,9 +242,69 @@ toggleMetalHUD(skView: view, enabled: true)
 
 ## SpriteKit Physics Tips
 
-*4 January 2025, updated 28 February 2025*
+*4 January 2025, updated 28 March 2025*
 
+- In some situations, you have to force the physics engine to reevaluate in order to get contact information. For example, consider this situation:
+  ```swift
+  let blueSprite = SKSpriteNode(color: .systemBlue, size: CGSize(width: 200, height: 200))
+  blueSprite.physicsBody = SKPhysicsBody(rectangleOf: blueSprite.size)
+  blueSprite.physicsBody?.categoryBitMask = 1 << 0
+  blueSprite.physicsBody?.collisionBitMask = 0
+  blueSprite.physicsBody?.contactTestBitMask = 0
+  blueSprite.physicsBody?.affectedByGravity = false
+  addChild(blueSprite)
+  
+  let redSprite = SKSpriteNode(color: .systemRed, size: CGSize(width: 100, height: 100))
+  redSprite.physicsBody = SKPhysicsBody(rectangleOf: redSprite.size)
+  redSprite.physicsBody?.categoryBitMask = 1 << 0
+  redSprite.physicsBody?.contactTestBitMask = 0
+  redSprite.physicsBody?.collisionBitMask = 0
+  redSprite.physicsBody?.affectedByGravity = false
+  redSprite.position = CGPoint(x: 0, y: 0)
+  addChild(redSprite)
+  ```
+  The blue and red sprites are overlapping, with collisions and contacts disabled. Now if we change the contact bit mask of the red sprite later on, will `SKPhysicsContactDelegate` report a contact?
+  ```swift
+  let action = SKAction.sequence([
+      SKAction.wait(forDuration: 2),
+      SKAction.run {
+          redSprite.physicsBody?.contactTestBitMask = 1 << 0
+          blueSprite.physicsBody?.contactTestBitMask = 1 << 0
+      }
+  ])
+  
+  redSprite.run(action)
+  
+  func didBegin(_ contact: SKPhysicsContact) {
+      print("Begin contact: \(contact)") // Does not fire
+  }
+  ```
+  
+  We have changed the contact bit masks of the red and blue sprites so they report contact between each other. However, didBegin will not send contact information. We have to force the physics engine to reevaluate. We can do that by moving one of the sprites beyond a threshold, for example by 30 points, or, we can toggle the `isDynamic` property:
+  ```swift
+  let action = SKAction.sequence([
+      SKAction.wait(forDuration: 2),
+      SKAction.run {
+          redSprite.physicsBody?.contactTestBitMask = BodyCategory.B1.rawValue
+          blueSprite.physicsBody?.contactTestBitMask = BodyCategory.B1.rawValue
+          redSprite.physicsBody?.isDynamic = false
+          redSprite.physicsBody?.isDynamic = true
+      }
+  ])
+  
+  redSprite.run(action)
+  
+  func didBegin(_ contact: SKPhysicsContact) {
+      print("Begin contact: \(contact)") // Will fire
+  }
+  ```
+  
+  Reseting the isDynamic property will force the engine to reevaluate contacts, and the contact delegate will send a didBegin contact object between the two sprites.
+  
+- Non dynamic physics bodies do not send contact event with each other.
+  
 - In order to animate the size change of a physics body, use a scale action or manually animate the scale of the node owning the physics body. Example:
+  
   ```swift
   let sprite = SKSpriteNode(texture: texture)
   sprite.physicsBody = SKPhysicsBody(rectangleOf: sprite.size)
@@ -261,7 +321,7 @@ toggleMetalHUD(skView: view, enabled: true)
   ])
   sprite.run(action)
   ```
-
+  
   Printing the physics body mass shows that the physics body is properly updated after the scale change. Moreover, if we print the size of the sprite, we can see that the size is correctly updated too. We can also scale the sprite to a specific size like so:
   ```swift
   SKAction.scale(to: CGSize(width: 200, height: 100), duration: 1)
