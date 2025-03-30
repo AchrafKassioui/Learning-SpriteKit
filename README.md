@@ -1,5 +1,40 @@
 # Learning SpriteKit
 
+## The Nuances of Collision Detection
+
+*30 March 2025*
+
+I'm still surprised by the subtleties of SpriteKit physics engine. Consider this setup:
+```swift
+let blueSprite = SKSpriteNode(color: .systemBlue, size: CGSize(width: 200, height: 200))
+blueSprite.physicsBody = SKPhysicsBody(rectangleOf: blueSprite.size)
+blueSprite.physicsBody?.categoryBitMask = 1 << 0
+blueSprite.physicsBody?.collisionBitMask = 1 << 0
+addChild(blueSprite)
+
+let redSprite = SKSpriteNode(color: .systemRed, size: CGSize(width: 100, height: 100))
+redSprite.physicsBody = SKPhysicsBody(rectangleOf: redSprite.size)
+redSprite.physicsBody?.categoryBitMask = 1 << 0
+redSprite.physicsBody?.collisionBitMask = 0 // do not collide with anything!
+addChild(redSprite)
+```
+
+Will the blue and red sprite collide? The red sprite is told to not collide with anything. But if we run the simulation, the blue sprite will be pushed apart! That is because collision detection can work **independently** for each body.
+
+In SpriteKit, collision detection is performed like this:
+- Each body independently determines if it will collide with another body
+- Body A checks: "Does my `collisionBitMask` include Body B's `categoryBitMask`?"
+- Body B checks: "Does my `collisionBitMask` include Body A's `categoryBitMask`?"
+- If EITHER check passes, physical collision occurs
+
+This means that setting `collisionBitMask = 0` on one body doesn't prevent another body from colliding with it. This also means that we can decide which body is moved by a collision response. The body whose collisionBitMask is set to zero won't be moved by the collision solver. The documentation says it although with its usual terse style:
+
+> When two physics bodies contact each other, a collision may occur. This body’s collision mask is compared to the other body’s category mask by performing a logical AND operation. If the result is a nonzero value, this body is affected by the collision. **Each body independently chooses whether it wants to be affected by the other body. For example, you might use this to avoid collision calculations that would make negligible changes to a body’s velocity.**
+>
+> [SpriteKit Documentation](https://developer.apple.com/documentation/spritekit/skphysicsbody/collisionbitmask)
+
+This behavior gives developers fine-grained control over which objects respond to collision forces. It's essentially creating one-way collision responses, where one object is affected while the other remains immobile from that particular interaction.
+
 ## All Contacted Bodies
 
 *28 March 2025*
