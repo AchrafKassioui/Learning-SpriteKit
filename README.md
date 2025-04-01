@@ -1,5 +1,56 @@
 # Learning SpriteKit
 
+## The Reciprocity of Contact Detection
+
+*1 April 2025*
+
+Collisions can be set independently for each physics body. We can make a body move from collision forces, or we can make it impervious to collisions while still allowing other bodies to collide against it:
+
+```swift
+let redSprite = SKSpriteNode(color: .systemRed, size: CGSize(width: 100, height: 100))
+redSprite.physicsBody = SKPhysicsBody(rectangleOf: redSprite.size)
+redSprite.physicsBody?.categoryBitMask = 1 << 1
+redSprite.physicsBody?.collisionBitMask = 0 // immovable by collisions
+addChild(redSprite)
+
+let blueSprite = SKSpriteNode(color: .systemBlue, size: CGSize(width: 100, height: 100))
+blueSprite.physicsBody = SKPhysicsBody(rectangleOf: blueSprite.size)
+blueSprite.physicsBody?.categoryBitMask = 1 << 1
+blueSprite.physicsBody?.collisionBitMask = 1 << 1 // is pushed away by the red sprite
+addChild(blueSprite)
+```
+
+Can we get a similar setup with contacts? Does contact detection work independently for each body? Consider case A:
+
+```swift
+let redSprite = SKSpriteNode(color: .systemRed, size: CGSize(width: 100, height: 100))
+redSprite.physicsBody = SKPhysicsBody(rectangleOf: redSprite.size)
+redSprite.physicsBody?.categoryBitMask = 1 << 1
+redSprite.physicsBody?.contactTestBitMask = 1 << 1
+redSprite.physicsBody?.collisionBitMask = 0
+addChild(redSprite)
+
+let blueSprite = SKSpriteNode(color: .systemBlue, size: CGSize(width: 50, height: 50))
+blueSprite.physicsBody = SKPhysicsBody(rectangleOf: blueSprite.size)
+blueSprite.physicsBody?.categoryBitMask = 1 << 1
+blueSprite.physicsBody?.contactTestBitMask = 0 // No contact test
+blueSprite.physicsBody?.collisionBitMask = 0
+addChild(blueSprite)
+```
+
+The red sprite is made to create a contact object when it contacts the blue sprite, while the blue sprite has no contact bit mask set. Now consider case B, where it also set a mask on the blue sprite:
+
+```swift
+blueSprite.physicsBody?.contactTestBitMask = 1 << 1
+```
+
+It my tests, both cases seem similar from a contact detection perspective:
+
+- Contacts are necessarily reciprocal. It's enough for one body to include the other in its `contactTestBitMask` for the contact event to trigger.
+- Unlike collisions, which can be one-sided (one body can be immovable while still colliding with another), contacts always occur as a pair.
+
+This means that contact detection does not function independently for each body in the way collisions do. Instead, if either body has its `contactTestBitMask` set correctly, the contact is detected and reported.
+
 ## Kinematic Body
 
 *1 April 2025*
