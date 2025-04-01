@@ -1,5 +1,23 @@
 # Learning SpriteKit
 
+## Kinematic Body
+
+*1 April 2025*
+
+Physics engines typically define three types of bodies:
+
+- Dynamic: affected by forces, collisions, and gravity. Moves naturally based on physics simulation.
+- Kinematic: not affected by collisions or forces, but can be moved via velocity updates.
+- Static: does not move at all except when directly repositioned.
+
+In SpriteKit, `isDynamic` toggles between dynamic and static behavior. Some bodies, like edge loops or edge chains, are always static. There's no built-in kinematic property, but we can achieve kinematic behavior by:
+
+- Setting its collision bit mask to 0 (prevents movement from collisions but still allows other bodies to collide with it).
+- Setting `affectedByGravity = false`.
+- Set its field bit mask to 0 (disable interaction with force fields).
+
+The body won't be moved by external forces, but it can still be animated within the simulation using `velocity`, `angularVelocity`, `applyImpulse`, and `applyForce`. This setup allows the body to function as a kinematic object while still interacting with other physics bodies as needed. Fine tuning the collision bit masks allows further control.
+
 ## The Nuances of Collision Detection
 
 *30 March 2025*
@@ -33,7 +51,7 @@ This means that setting `collisionBitMask = 0` on one body doesn't prevent anoth
 >
 > [SpriteKit Documentation](https://developer.apple.com/documentation/spritekit/skphysicsbody/collisionbitmask)
 
-This behavior gives developers fine-grained control over which objects respond to collision forces. It's essentially creating one-way collision responses, where one object is affected while the other remains immobile from that particular interaction.
+This behavior allows fine-grained control over which objects respond to collision forces. It's essentially creating one-way collision responses, where one object is affected while the other remains immobile from that particular interaction.
 
 ## All Contacted Bodies
 
