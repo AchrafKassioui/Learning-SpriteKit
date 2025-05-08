@@ -11,22 +11,22 @@ We can diagnose that with the following setup:
 ```swift
 class MyScene: SKScene {
     var start = CFAbsoluteTimeGetCurrent()
-    
+
     override func update(_ currentTime: TimeInterval) {
         start = CFAbsoluteTimeGetCurrent()
         print("🟢 Frame Start: \(start)")
     }
-    
-	override func didFinishUpdate() {
+
+    override func didFinishUpdate() {
         let now = CFAbsoluteTimeGetCurrent()
         print("🔴 Frame End: \(now)")
     }
-    
-	override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         let now = CFAbsoluteTimeGetCurrent()
         print("🟡 touchesBegan at \(now)")
     }
-    
+
 }
 ```
 
