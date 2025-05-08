@@ -1,5 +1,60 @@
 # Learning SpriteKit
 
+## Touch Events Timing
+
+*8 May 2025*
+
+When are touch events delivered relative to SpriteKit’s update loop? Can they happen mid-frame, between `update` and `didSimulatePhysics`? If there's post-processing in `didFinishUpdate` that modifies the whole tree, which node would be picked up but hit detection calculations such as `nodes(at:)`?
+
+We can diagnose that with the following setup:
+
+```swift
+class MyScene: SKScene {
+    var start = CFAbsoluteTimeGetCurrent()
+    
+    override func update(_ currentTime: TimeInterval) {
+        start = CFAbsoluteTimeGetCurrent()
+        print("🟢 Frame Start: \(start)")
+    }
+    
+	override func didFinishUpdate() {
+        let now = CFAbsoluteTimeGetCurrent()
+        print("🔴 Frame End: \(now)")
+    }
+    
+	override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let now = CFAbsoluteTimeGetCurrent()
+        print("🟡 touchesBegan at \(now)")
+    }
+    
+}
+```
+
+This will print something like:
+
+```swift
+🟡 touchesBegan at 768395873.87242
+🟢 Frame Start: 768395873.885066
+🔴 Frame End: 768395873.885171
+🟢 Frame Start: 768395873.901704
+//..
+🟢 Frame Start: 768395874.501757
+🔴 Frame End: 768395874.502179
+🟡 touchesBegan at 768395874.519156
+🟢 Frame Start: 768395874.519402
+🔴 Frame End: 768395874.52009
+//..
+🟢 Frame Start: 768395874.785056
+🔴 Frame End: 768395874.785298
+🟡 touchesBegan at 768395874.802803
+🟢 Frame Start: 768395874.80304
+🔴 Frame End: 768395874.803363
+```
+
+If you continue logging, you'll notice the the touch began event is always fired *after* a frame end and *before* a frame start. 
+
+This means that the code called by the touch callback runs before any code called by the `update` function of SpriteKit. You can assume that touch events are captured while the frame render is on screen, i.e. after `didFinishUpdate` of the current frame and before the `update` of the next frame.
+
 ## The Reciprocity of Contact Detection
 
 *1 April 2025*
