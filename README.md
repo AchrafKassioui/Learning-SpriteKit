@@ -322,7 +322,7 @@ let categoryBitMask30: UInt32 = 1 << 30  // 0b01000000000000000000000000000000
 let categoryBitMask31: UInt32 = 1 << 31  // 0b10000000000000000000000000000000
 ```
 
-These values can be combined using bitwise OR `|` for `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask`.
+These values can be combined using bitwise OR `|` for `categoryBitMask`, `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask`.
 
 In SpriteKit, there are two independent groups of category bit masks, each allowing up to 32 individual categories:
 
@@ -338,8 +338,6 @@ let all: UInt32 = UInt32.max
 // Interact with nothing (0b00000000000000000000000000000000)
 let none: UInt32 = 0
 ```
-
-A category bit mask of 0 will exclude it from all interactions, including with category UInt32.max. Category 0 makes the body invisible to all physics interactions.
 
 ## Contact Detection
 
