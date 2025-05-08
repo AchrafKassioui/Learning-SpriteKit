@@ -51,7 +51,7 @@ This will print something like:
 🔴 Frame End: 768395874.803363
 ```
 
-If you continue logging, you'll notice the the touch began event is always fired *after* a frame end and *before* a frame start. 
+If you continue logging, you'll notice that the touches began event is always fired *after* a frame end and *before* a frame start.
 
 This means that the code called by the touch callback runs before any code called by the `update` function of SpriteKit. You can assume that touch events are captured while the frame render is on screen, i.e. after `didFinishUpdate` of the current frame and before the `update` of the next frame.
 
