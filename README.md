@@ -37,11 +37,14 @@ After some considerable time with Swift, the VStack writing above started to mak
 // VStack is a function name
 
 VStack {
-    // In Swift, we can write `function {}` if the last argument of the function takes a closure (i.e. some code to run). We can omit the `()` for calling the function.
+    // In Swift, we can write `function {}` if the last argument of the function
+    // takes a closure (i.e. some code to run).
+    // We can omit the `()` for calling the function.
 }
 
 VStack() {
-    // We could call VStack like any other function using (). But we still need to pass a closure {} because that closure is a required parameter.
+    // We could call VStack like any other function using (). But we still need
+    // to pass a trailing closure {} because that closure is a required parameter.
 }
 
 VStack(spacing: 10) {
@@ -49,8 +52,10 @@ VStack(spacing: 10) {
 }
 
 VStack(spacing: 10, content: {
-    // This time we explicitly name the closure parameter, `content`, and pass it a closure inside the ()
-    // In Swift, if the last parameter is a closure, we can omit the name of the parameter, and pass the closure inside {} after the ()
+    // This time we explicitly name the closure parameter, `content`, give it
+    // a closure, then close the parenthesis.
+    // In Swift, if the last parameter of a function is a closure, we can omit
+    // the name of the parameter, and pass the closure after the `()`
 })
 ```
 
