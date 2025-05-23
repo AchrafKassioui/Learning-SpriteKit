@@ -1,5 +1,71 @@
 # Learning SpriteKit
 
+## UIKit/SwiftUI with SpriteKit
+
+*22 May 2025*
+
+Notes on using UIKit or SwiftUI with SpriteKit:
+
+In the context of highly interactive programs, like games and simulations, UI frameworks are a handicap.
+
+UI frameworks are ready-made building blocks designed for programs where views are mostly static. Change happens when users request specific data.
+
+Both SwiftUI and UIKit come with a set of highly opinionated building blocks that you just have to accept and learn.
+
+SwiftUI is marketed as easier than UIKit. In my experience, that hasn't been the case. SwiftUI relies on advanced patterns of the Swift programming language. Many quirks and idioms of SwiftUI were incomprehensible to me until I got more familiar with Swift, often years later. For example, consider the many ways you can write a VStack:
+```swift
+VStack {
+
+}
+
+VStack() {
+
+}
+
+VStack(spacing: 10) {
+
+}
+
+VStack(spacing: 10, content: {
+
+})
+```
+
+When I started learning Swift and SwiftUI at the same time, I had no idea what to write. The logic of the syntax was inscrutable to me. I couldn't guess what should come next: why braces? Why parentheses? Which argument to use? How to find the name for "border width" or "font weight"? Where to put them?
+
+After some considerable time with Swift, the VStack writing above started to make sense within the context of Swift:
+
+```swift
+// VStack is a function name
+
+VStack {
+    // In Swift, we can write `function {}` if the last argument of the function takes a closure (i.e. some code to run). We can omit the `()` for calling the function.
+}
+
+VStack() {
+    // We could call VStack like any other function using (). But we still need to pass a closure {} because that closure is a required parameter.
+}
+
+VStack(spacing: 10) {
+    // The function VStack has optional parameters, which we can put inside the `()`
+}
+
+VStack(spacing: 10, content: {
+    // This time we explicitly name the closure parameter, `content`, and pass it a closure inside the ()
+    // In Swift, if the last parameter is a closure, we can omit the name of the parameter, and pass the closure inside {} after the ()
+})
+```
+
+SwiftUI syntax is only understandable if you already got Swift's function, closure, and trailing closure rules. Otherwise, it's inscrutable.
+
+UIKit has a more classical dot chaining and line after line of property setters. If you come from a C-inspired framework or language, UIKit feels closer to home. But it has its own quirks. For example, UIKit relies heavily on the delegate pattern. Many building blocks, such as a list or a collection view, come with a conformance protocol that you add to your view controller, then you add those conformance functions inside your class, and then you get magic behavior. There isn't a way to guess these functions, you just have to know them.
+
+For basic setups, SwiftUI gets you there quicker than UIKit. Setting up your app entry points is easier with SwiftUI. But about 100% of the time, you'll eventually use UIKit or AppKit anyways, because some specific behavior requires that you access a system-wide property that is only exposed with imperative code. For example: what is the current refresh rate of the device? What is the current orientation? What is the current retina scale?
+
+SpriteKit was made in the UIKit era. SpriteKit uses multiple patterns that UIKit does, such as delegates. SpriteKit handles user input using methods that are in fact UIKit and AppKit methods, such as touchesBegan and pressesBegan. In many ways, SpriteKit is closer to UIKit than to SwiftUI. I use UIKit with SpriteKit, because the context switch is less jarring than switching to SwiftUI.
+
+Personally, I'd rather not use any UI framework at all, and just live in a 2D or 3D world with a scene graph, a physics engine, and an explicit update loop.
+
 ## Touch Events Timing
 
 *8 May 2025*
