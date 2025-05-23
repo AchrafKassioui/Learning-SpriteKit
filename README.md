@@ -1,6 +1,6 @@
 # Learning SpriteKit
 
-## Notes on UIKit/SwiftUI with SpriteKit
+## Notes on UIKit-SwiftUI with SpriteKit
 
 *22 May 2025*
 
