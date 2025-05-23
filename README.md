@@ -1,10 +1,8 @@
 # Learning SpriteKit
 
-## UIKit/SwiftUI with SpriteKit
+## Notes on UIKit/SwiftUI with SpriteKit
 
 *22 May 2025*
-
-Notes on using UIKit or SwiftUI with SpriteKit:
 
 In the context of highly interactive programs, like games and simulations, UI frameworks are a handicap.
 
