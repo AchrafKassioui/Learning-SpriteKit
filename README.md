@@ -38,7 +38,7 @@ After some considerable time with Swift, the VStack writing above started to mak
 
 VStack {
     // In Swift, we can write `function {}` if the last argument of the function
-    // takes a closure (i.e. some code to run).
+    // takes a closure, i.e. some code to run.
     // We can omit the `()` for calling the function.
 }
 
