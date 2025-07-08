@@ -1,5 +1,89 @@
 # Learning SpriteKit
 
+## Timing Function
+
+*8 July 2025*
+
+The pace of a standard action such as `SKAction.move(to:duration:)` can be changed using the `timingFunction` property:
+
+```swift
+let action = SKAction.move(to: targetPosition, duration: 1)
+
+/// Bounce effect
+action.timingFunction = { time in
+    if time < 1/2.75 {
+    	return 7.5625 * time * time
+    } else if time < 2/2.75 {
+	    let t2 = time - 1.5/2.75
+    	return 7.5625 * t2 * t2 + 0.75
+    } else if time < 2.5/2.75 {
+	    let t2 = time - 2.25/2.75
+    	return 7.5625 * t2 * t2 + 0.9375
+    } else {
+	    let t2 = time - 2.625/2.75
+    	return 7.5625 * t2 * t2 + 0.984375
+    }
+}
+```
+
+The custom timing function will make the node bounce against the target position a few times before settling in. However, it seems that a timing function cannot make a standard action overshoot the start or target position of a node. For example, this timing function:
+
+```swift
+static let easeOutElastic: (Float) -> Float = { time in
+	// Period controls how many wiggles (oscillations) the elastic effect does
+    let period: Float = (2 * .pi) / 3
+
+    if time == 0 {
+        return 0
+    }
+                                               
+    if time == 1 {
+        return 1
+    }
+
+    let exponent = pow(2, -10 * time)
+    let sineComponent = sin((time * 10 - 0.75) * period)
+    let elasticValue = exponent * sineComponent + 1
+
+    return elasticValue
+}
+```
+
+... should produce an elastic spring effect. However, running the action doesn't produce any such result.
+
+In order to create an elastic behavior, a custom action is required. For example:
+
+```swift
+/// `Period` controls how much the animation wiggles before settling.
+/// Lower values like 0.2 mean more oscillation.
+/// Higher values like 0.5 mean less oscillation.
+/// Typical range: 0.2...0.8. Default is 0.3.
+func animatePositionWithSpring(_ node: SKNode, targetPosition: CGPoint, duration: TimeInterval, period: CGFloat = 0.3) {
+    let startPosition = node.position
+    let endPosition = targetPosition
+
+    let action = SKAction.customAction(withDuration: duration) { node, elapsedTime in
+        let normalizedTime = max(0, min(1, CGFloat(elapsedTime) / CGFloat(duration)))
+
+        if normalizedTime == 0 {
+            node.position = startPosition
+        } else if normalizedTime == 1 {
+            node.position = endPosition
+        } else {
+            let overshoot = period / 4
+            let elasticValue = pow(2, -10 * normalizedTime) * sin((normalizedTime - overshoot) * (2 * .pi) / period) + 1
+            let interpolatedX = startPosition.x + (endPosition.x - startPosition.x) * elasticValue
+            let interpolatedY = startPosition.y + (endPosition.y - startPosition.y) * elasticValue
+            node.position = CGPoint(x: interpolatedX, y: interpolatedY)
+        }
+    }
+
+    let actionKey = "TransformSystemActionWithSpring-Position"
+    node.removeAction(forKey: actionKey)
+    node.run(action, withKey: actionKey)
+}
+```
+
 ## Notes on UIKit-SwiftUI with SpriteKit
 
 *22 May 2025*
