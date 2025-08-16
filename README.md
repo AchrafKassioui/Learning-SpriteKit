@@ -153,6 +153,17 @@ SpriteKit was made in the UIKit era. SpriteKit uses multiple patterns that UIKit
 
 Personally, I'd rather not use any UI framework at all, and just live in a 2D or 3D world with a scene graph, a physics engine, and an explicit update loop.
 
+## print
+
+*21 May 2025*
+
+- terminator
+- separator
+
+```swift
+print("\(self) DEINIT", terminator: "\n\n")
+```
+
 ## Touch Events Timing
 
 *8 May 2025*
