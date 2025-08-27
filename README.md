@@ -2241,11 +2241,11 @@ The video below shows the result:
 
 https://github.com/user-attachments/assets/48341c90-08a7-4756-91e8-d6ce5504171f
 
-Filters could also be applied to *parts* of the scene only. For that, we would snapshot the node tree we want to filter using `view.texture(from:crop)`, then apply the filter using `SKTexture.applying(:)`, then we would display that texture as render, below or next to other nodes that have not been part of the snapshotted tree.
+Filters could also be applied to *parts* of the scene only. For that, we would snapshot the node tree we want to filter using `view.texture(from:crop)`, then apply the filter using `SKTexture.applying(:)`, then we would display that texture as a sprite, below or next to other nodes that have not been part of the snapshotted tree.
 
 *9 November 2024, updated 6 March 2025*
 
-If we enable Core Image filters on a scene with a camera, we observe this:
+If we enable Core Image filters on a scene with a `SKCameraNode`, we observe this:
 
 <img src="Screenshots/SpriteKit - Scene Filters OFF.png" alt="SpriteKit - Scene Filters OFF" style="width:33%;" />
 
@@ -2281,9 +2281,9 @@ class MyScene: SKScene {
 }
 ```
 
-The filter will then apply to the whole view. Note that if the camera is zoomed out or in, there will be some cropping (zoom out) or down sampling (zoom in) when Core Image filters are applied. This is likely an internal SpriteKit choice to control texture rendering size. 
+The filter will then apply to the whole view. Note that if the camera is zoomed out or in, there will be some cropping (zoom out) or down sampling (zoom in) when Core Image filters are applied.
 
-However, it is possible to apply Core Image filters to whatever SKView renders, using an elaborate setup and `view.texture(from:crop:).applying(_ :CIFilter)`.
+However, it is possible to apply Core Image filters to whatever SKView renders, using an elaborate setup and `view.texture(from:crop:).applying(_ :CIFilter)`. *Update 27 August 2025: use a manual camera node instead of SKCameraNode.*
 
 *5 June 2024*
 
