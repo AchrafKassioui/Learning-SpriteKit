@@ -2198,45 +2198,50 @@ In both cases, we get a sprite node, i.e. a node that draws a bitmap image. This
 
 Mind you that Core Graphics is a framework optimized for quality rather than performance. It is not meant to produce images 60 or 120 times per second.
 
-## Core Image Filters in SpriteKit
+## Core Image Filters and SpriteKit
 
 *27 August 2025*
 
-One of the best decisions I made in SpriteKit is to let go of SKCameraNode and implement the camera with a regular node, then do processing in update and didFinishUpdate (see SpriteKit programming guide).
+One of the best decisions I made in SpriteKit is to let go of `SKCameraNode` and implement the camera with a regular node, then apply its transforms to content nodes in `didFinishUpdate` (see [SpriteKit programming guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Actions/Actions.html#//apple_ref/doc/uid/TP40013043-CH4-SW24)).
 
-A major upside for this is that the scene size always matches the view size. With SKCameraNode, if we zoom out, the scene size increases. Which means that processing that is scene size related (such as Core Image filters using SKScene.filter) will be impacted.
+A major upside of that strategy is that the scene size remains fixed. With `SKCameraNode`, if we zoom out, the scene size increases. Which means that scene size related processing (such as Core Image filters using `SKScene.filter`) will be impacted.
 
-With a custom camera setup, simulating the camera boils down to scaling and moving parent nodes inside the scene. Therefore, the scene size itself never changes.
+With a custom camera setup, simulating the camera boils down to scaling, moving, and rotating parent nodes *inside* the scene. Therefore, the scene size itself never changes. This means we can safely apply Core Image filters to the scene itself regardless of camera zoom, without running into Metal texture limit.
 
-This means we can safely apply Core Image filters to the scene itself, without running into Metal texture limit, and regardless of camera zoom.
+The code sample below shows how a Core Image filter is applied using `CIFilterBuiltins`. The code is from of a larger context where filtering is part of the Camera system in a custom ECS architecture built on top of SpriteKit. After the camera node's transforms are applied to content nodes in `didFinishUpdate`, filters can be applied to the scene directly. 
 
 ```swift
 import CoreImage.CIFilterBuiltins
 
 class MyScene: SKScene {
 
+    /// A toggle that could live in the camera component of the ECS
     var enableFilters = true
 
     override func didFinishUpdate() {
         /// Apply Core Image Filter
         if enableFilters {
-            context.shouldEnableEffects = true
-            /// Disable should center if you want to pass a custom center point
-            context.shouldCenterFilter = false
+            self.shouldEnableEffects = true           
             let filter = CIFilter.bumpDistortion()
             filter.radius = 500
             filter.scale = 0.5
+            /// Disable centering if you want to pass a custom center point
+            self.shouldCenterFilter = false
             /// The filter seems to take @2x values, with 0,0 being the bottom left
             filter.center = CGPoint(x: 395, y: 844)
-            context.filter = filter
+            self.filter = filter
         } else {
-            context.shouldEnableEffects = false
+            self.shouldEnableEffects = false
         }
     }
 }
 ```
 
+The video below shows the result:
+
 https://github.com/user-attachments/assets/48341c90-08a7-4756-91e8-d6ce5504171f
+
+Filters could also be applied to *parts* of the scene only. For that, we would snapshot the node tree we want to filter using `view.texture(from:crop)`, then apply the filter using `SKTexture.applying(:)`, then we would display that texture as render, below or next to other nodes that have not been part of the snapshotted tree.
 
 *9 November 2024, updated 6 March 2025*
 
