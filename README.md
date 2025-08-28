@@ -1,5 +1,177 @@
 # Learning SpriteKit
 
+## SpriteKit Manual Camera
+
+*28 August 2025*
+
+SpriteKit has a dedicated camera node type `SKCameraNode`. It is easy and handy to start off with, but we can go much further with a manual camera setup.
+
+What does SKCameraNode give us?
+- Ease of use: create an instance, assign it to the `scene.camera` property, transform the camera -> the view changes.
+- When `SKCameraNode` is scaled, the nodes that are not children of the camera aren't, so physics and other scale sensitive transforms aren't affected.
+
+When SpriteKit came out, it didn't have SKCameraNode. SKCameraNode was a later addition. The [SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Introduction/Introduction.html) predates SKCameraNode, and has an entire section on how to manually simulate a camera with the right node hierarchy:
+
+> SpriteKit does not provide built-in support for cameras, but the implementation is very straightforward. The world and the camera are each represented by a node in the scene. The world is a direct child of the scene and the camera is a descendant of the world node. This arrangement of nodes is useful because it gives the game world a coordinate system that is not tied to the scene’s coordinate system. You can use this coordinate system to lay out the world content.
+
+> [!NOTE]
+>
+> The SpriteKit programming guide is excellent. They say it's retired (mostly because code is in Objective-C), but it's very well written and full of insights.
+
+In my own setup with SpriteKit, I use the following arrangement to simulate a camera:
+
+- I define an enum with the layers that I need: base layer, content layer, UI layer, ...
+- For each layer, I create a node, the layer node.
+- Whenever I need to add a node, I add it as a child of its layer node. For example, a UI node is added as a child of the UI layer node.
+- The camera node is a separate node that I add as a child of the base layer. I could add the camera node to the scene directly, but I add it to the base layer to organize things cleanly.
+
+The trick of the manual camera setup is to leverage the update loop of SpriteKit:
+
+- In update, all transforms of the layer nodes are reset. This guarantees that whatever logic and physics I run on the nodes of these layers, their parent node is in scene space with a scale of 1. It's best to not mess with scale while running physics.
+- I don't need to reset the position and rotation of the camera node. The camera node carries its state from frame to frame. I do however reset its scale to 1 after storing its original value, because I control the camera with physics.
+- In didFinishUpdate, I restore the original scale of the camera node, then I reapply the camera node transforms on the nodes that need to be moved by the camera.
+
+Notice how the camera transforms are applied to the content layer, not the UI layer. This is the opposite of what happens with SKCameraNode, and it is the reason why a manual camera is more powerful.
+
+By scaling the content layers, the scene size remains fixed, which has many benefits such as:
+
+- We can snapshot what the camera sees using `'view.texture(from:crop:)'.
+- We can run Core Image filters without hassles
+- If we want to rotate the camera node with gestures, we just apply the gesture transforms to the camera node using scene coordinates. We don't need to do trigonometry to convert gesture coordinates to SKCameraNode space.
+
+```swift
+// MARK: Layers
+
+enum SceneLayer: CGFloat, Codable, CaseIterable {
+    case base = 0
+    case content = 10_000
+    case ui = 20_000
+    
+    var isScalable: Bool {
+        return [.content].contains(self)
+    }
+}
+
+// MARK: Scene
+
+class ManualCameraScene: SKScene {
+    
+    var parentNodes: [SceneLayer: SKNode] = [:]
+    let cameraNode = SKNode()
+    
+    // MARK: didMove
+    
+    override func didMove(to view: SKView) {
+        size = view.bounds.size
+        scaleMode = .resizeFill
+        backgroundColor = .darkGray
+        anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        
+        createLayers()
+        createCamera()
+        createContent(view: view)
+        animateCamera()
+    }
+    
+    // MARK: Layer Nodes
+    
+    func createLayers() {
+        for layer in SceneLayer.allCases {
+            let node = SKNode()
+            node.name = "\(layer) layer"
+            addChild(node)
+            node.zPosition = layer.rawValue
+            parentNodes[layer] = node
+        }
+    }
+    
+    func parentNode(forLayer layer: SceneLayer) -> SKNode {
+        guard let node = parentNodes[layer] else {
+            print("Layer node for \(layer) not found. Returning the scene node instead.")
+            return self
+        }
+        return node
+    }
+    
+    // MARK: Camera
+    
+    func createCamera() {
+        parentNode(forLayer: .base).addChild(cameraNode)
+    }
+    
+    /// A sample animation that controls the camera node
+    /// We could use anything to control the camera, including physics
+    /// If the camera node is controlled with physics, make sure to reset its scale to 1 in update, then set it back to its scale value after the physics step
+    func animateCamera() {
+        let action = SKAction.sequence([
+            .group([
+                .scale(to: 0.25, duration: 1),
+                .move(to: CGPoint(x: 0, y: 0), duration: 1),
+                
+            ]),
+            .wait(forDuration: 0.5),
+            .group([
+                .scale(to: 1.5, duration: 1),
+                .move(to: CGPoint(x: 0, y: 0), duration: 1),
+            ]),
+            .wait(forDuration: 0.5)
+        ])
+        action.timingMode = .easeInEaseOut
+        cameraNode.run(SKAction.repeatForever(action))
+    }
+    
+    // MARK: Content
+    
+    func createContent(view: SKView) {
+        let UILabel = SKLabelNode(text: "UI Layer")
+        UILabel.fontName = "Menlo-Bold"
+        UILabel.fontSize = 24
+        UILabel.position = CGPoint(x: 0 , y: -view.bounds.height/2 + 100)
+        parentNode(forLayer: .ui).addChild(UILabel)
+        
+        let contentSquare = SKShapeNode(rectOf: CGSize(width: 200, height: 100), cornerRadius: 4)
+        contentSquare.fillColor = .systemYellow
+        contentSquare.lineWidth = 3
+        contentSquare.strokeColor = .black
+        parentNode(forLayer: .content).addChild(contentSquare)
+        
+        let contentLabel = SKLabelNode(text: "Scalable Layer")
+        contentLabel.verticalAlignmentMode = .center
+        contentLabel.fontName = "Menlo-Bold"
+        contentLabel.fontSize = 16
+        contentLabel.fontColor = .black
+        contentSquare.addChild(contentLabel)
+    }
+    
+    // MARK: Loop
+    
+    override func update(_ currentTime: TimeInterval) {        
+        /// All nodes that scale and move with camera are reset, so physics and any other processing happen in scene coordinates
+        for layer in SceneLayer.allCases where layer.isScalable {
+            parentNode(forLayer: layer).position = .zero
+            parentNode(forLayer: layer).setScale(1)
+            parentNode(forLayer: layer).zRotation = 0
+        }
+        
+        /// If the camera is controlled with physics, store its scale, and set its scale to 1 for now
+        
+        /// ... run frame logic
+    }
+    
+    override func didFinishUpdate() {
+        /// Restore camera scale
+        
+        /// Apply the camera transforms to all scalable layers.
+        for layer in SceneLayer.allCases where layer.isScalable {
+            parentNode(forLayer: layer).position = cameraNode.position
+            parentNode(forLayer: layer).scaleAsPoint = cameraNode.scaleAsPoint
+            parentNode(forLayer: layer).zRotation = cameraNode.zRotation
+        }
+    }
+
+}
+```
+
 ## Timing Function
 
 *8 July 2025*
