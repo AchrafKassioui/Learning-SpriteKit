@@ -10,7 +10,7 @@ What does SKCameraNode give us?
 - Ease of use: create an instance, assign it to the `scene.camera` property, transform the camera -> the view changes.
 - When `SKCameraNode` is scaled, the nodes that are not children of the camera aren't, so physics and other scale-sensitive transforms aren't affected.
 
-When SpriteKit came out, it didn't have SKCameraNode. SKCameraNode was a later addition. The [SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Introduction/Introduction.html) predates SKCameraNode, and has an entire section on how to manually simulate a camera with the right node hierarchy:
+When SpriteKit came out, it didn't have SKCameraNode. SKCameraNode was a later addition. The [SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Introduction/Introduction.html) predates SKCameraNode, and has an entire section on how to manually simulate a camera with the right node hierarchy. From "Post-Processing in Scenes":
 
 > SpriteKit does not provide built-in support for cameras, but the implementation is very straightforward. The world and the camera are each represented by a node in the scene. The world is a direct child of the scene and the camera is a descendant of the world node. This arrangement of nodes is useful because it gives the game world a coordinate system that is not tied to the scene’s coordinate system. You can use this coordinate system to lay out the world content.
 
@@ -29,6 +29,7 @@ The trick of the manual camera setup is to leverage the update loop of SpriteKit
 
 - In `update`, all transforms of the layer nodes are reset. This guarantees that whatever logic and physics I run on the nodes of these layers, their parent node is in scene space with a scale of 1. It's best to not mess with scale while running physics.
 - I don't need to reset the position and rotation of the camera node. The camera node carries its position and rotation from frame to frame. I do however reset its scale to 1 after storing its original value, because I control the camera with physics.
+- The rest of update, actions, physics, and constraints run.
 - In `didFinishUpdate`, i.e. just before rendering, I restore the original scale of the camera node, then I reapply the camera node transforms on the nodes that need to be moved by the camera.
 
 Notice how the camera transforms are applied to the content layer, not the UI layer. This is the opposite of what happens with SKCameraNode, and it is the reason why a manual camera is more powerful.
@@ -37,7 +38,7 @@ By scaling the content layers, the scene size remains fixed, which has many bene
 
 - We can snapshot what the camera sees using `view.texture(from:crop:)`.
 - We can run Core Image filters without hassles.
-- If we want to rotate the camera node with gestures, we just apply the gesture transforms to the camera node using scene coordinates. We don't need to do trigonometry to convert gesture coordinates to SKCameraNode space.
+- If we want to rotate the camera node with gestures, we apply the gesture transforms to the camera node using scene coordinates. We don't need to do trigonometry to convert gesture coordinates to SKCameraNode space.
 
 Below is a working code sample of the setup:
 
