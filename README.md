@@ -8,7 +8,7 @@ SpriteKit has a dedicated camera node type `SKCameraNode`. It is easy and handy 
 
 What does SKCameraNode give us?
 - Ease of use: create an instance, assign it to the `scene.camera` property, transform the camera -> the view changes.
-- When `SKCameraNode` is scaled, the nodes that are not children of the camera aren't, so physics and other scale sensitive transforms aren't affected.
+- When `SKCameraNode` is scaled, the nodes that are not children of the camera aren't, so physics and other scale-sensitive transforms aren't affected.
 
 When SpriteKit came out, it didn't have SKCameraNode. SKCameraNode was a later addition. The [SpriteKit Programming Guide](https://developer.apple.com/library/archive/documentation/GraphicsAnimation/Conceptual/SpriteKit_PG/Introduction/Introduction.html) predates SKCameraNode, and has an entire section on how to manually simulate a camera with the right node hierarchy:
 
@@ -23,21 +23,23 @@ In my own setup with SpriteKit, I use the following arrangement to simulate a ca
 - I define an enum with the layers that I need: base layer, content layer, UI layer, ...
 - For each layer, I create a node, the layer node.
 - Whenever I need to add a node, I add it as a child of its layer node. For example, a UI node is added as a child of the UI layer node.
-- The camera node is a separate node that I add as a child of the base layer. I could add the camera node to the scene directly, but I add it to the base layer to organize things cleanly.
+- The camera node is a separate node that I add as a child of the base layer. I could add the camera node to the scene directly, but I add it to the base layer to organize things.
 
 The trick of the manual camera setup is to leverage the update loop of SpriteKit:
 
-- In update, all transforms of the layer nodes are reset. This guarantees that whatever logic and physics I run on the nodes of these layers, their parent node is in scene space with a scale of 1. It's best to not mess with scale while running physics.
-- I don't need to reset the position and rotation of the camera node. The camera node carries its state from frame to frame. I do however reset its scale to 1 after storing its original value, because I control the camera with physics.
-- In didFinishUpdate, I restore the original scale of the camera node, then I reapply the camera node transforms on the nodes that need to be moved by the camera.
+- In `update`, all transforms of the layer nodes are reset. This guarantees that whatever logic and physics I run on the nodes of these layers, their parent node is in scene space with a scale of 1. It's best to not mess with scale while running physics.
+- I don't need to reset the position and rotation of the camera node. The camera node carries its position and rotation from frame to frame. I do however reset its scale to 1 after storing its original value, because I control the camera with physics.
+- In `didFinishUpdate`, i.e. just before rendering, I restore the original scale of the camera node, then I reapply the camera node transforms on the nodes that need to be moved by the camera.
 
 Notice how the camera transforms are applied to the content layer, not the UI layer. This is the opposite of what happens with SKCameraNode, and it is the reason why a manual camera is more powerful.
 
 By scaling the content layers, the scene size remains fixed, which has many benefits such as:
 
-- We can snapshot what the camera sees using `'view.texture(from:crop:)'.
-- We can run Core Image filters without hassles
+- We can snapshot what the camera sees using `view.texture(from:crop:)`.
+- We can run Core Image filters without hassles.
 - If we want to rotate the camera node with gestures, we just apply the gesture transforms to the camera node using scene coordinates. We don't need to do trigonometry to convert gesture coordinates to SKCameraNode space.
+
+Below is a working code sample of the setup:
 
 ```swift
 // MARK: Layers
@@ -171,6 +173,8 @@ class ManualCameraScene: SKScene {
 
 }
 ```
+
+In the sample above, the camera is controlled with actions. But it could be controlled with anything. In order to control the camera with touch, retrieve the input information from the touch callbacks, and apply them to the camera node. The update logic in `didFinishUpdate` will do the rest.
 
 ## Timing Function
 
