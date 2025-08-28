@@ -162,7 +162,7 @@ class ManualCameraScene: SKScene {
     }
     
     override func didFinishUpdate() {
-        /// Restore camera scale
+        /// Restore camera scale if needed
         
         /// Apply the camera transforms to all scalable layers.
         for layer in SceneLayer.allCases where layer.isScalable {
@@ -175,7 +175,7 @@ class ManualCameraScene: SKScene {
 }
 ```
 
-In the sample above, the camera is controlled with actions. But it could be controlled with anything. In order to control the camera with touch, retrieve the input information from the touch callbacks, and apply them to the camera node. The update logic in `didFinishUpdate` will do the rest.
+In the sample above, the camera is controlled with actions for demo reasons. In practice, the camera is controlled directly with touch input or with custom tweening inside didFinishUpdate. In order to control the camera with touch, retrieve the input information from the touch callbacks, and apply them to the camera node in didFinishUpdate. Note that touch callbacks are fired before SpriteKit's update function.
 
 ## Timing Function
 
