@@ -40,7 +40,7 @@ By scaling the content layers, the scene size remains fixed, which has many bene
 - We can run Core Image filters without hassles.
 - If we want to rotate the camera node with gestures, we apply the gesture transforms to the camera node using scene coordinates. We don't need to do trigonometry to convert gesture coordinates to SKCameraNode space.
 
-Below is a working code sample of the setup:
+Below is a working code sample of the setup ([gist here](https://gist.github.com/AchrafKassioui/cecc4f84fffa9340f27125e56ee4df35)):
 
 ```swift
 // MARK: Layers
