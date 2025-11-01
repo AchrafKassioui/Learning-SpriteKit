@@ -46,6 +46,8 @@ border.physicsBody?.velocity = CGVector(dx: 0, dy: 150)
 
 The border will move upwards continuously and will drag the yellow rectangles with it! It seems that the simulation *can* move an edge body. Setting `.velocity` or `.angularVelocity` moves the body kinematically. The body ignore damping properties, but still collides with volume bodies and applies restitution.
 
+https://github.com/user-attachments/assets/edef7393-22a3-415f-bb3a-4a5fcbeef6d1
+
 I found out about this by applying an impulse PD controller on an edge body:
 
 ```swift
