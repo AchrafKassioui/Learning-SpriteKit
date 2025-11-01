@@ -1,5 +1,93 @@
 # Learning SpriteKit
 
+## Edge Physics Body
+
+*1 Nov 2025*
+
+[SpriteKit documentation says](https://developer.apple.com/documentation/spritekit/getting-started-with-physics-bodies):
+
+> - An edge is a static volume-less body. Edges are never moved by the simulation and their mass doesn’t matter. Edges are used to represent negative space within a scene (such as a hollow spot inside another entity) or an uncrossable, invisibly thin boundary.
+
+Edge bodies can be created like this:
+
+```swift
+func createBorder(in view: SKView) {
+    let safeFrame = view.bounds.inset(by: view.safeAreaInsets)
+    let safeSize = safeFrame.size
+    let padding: CGFloat = 40
+    let borderSize = CGSize(
+        width: safeSize.width - padding,
+        height: safeSize.height - padding
+    )
+    
+    let border = SKShapeNode(rectOf: borderSize, cornerRadius: 12)
+    border.lineWidth = 3
+    border.strokeColor = .systemGray
+    
+    if let path = border.path {
+        border.physicsBody = SKPhysicsBody(edgeLoopFrom: path)
+        border.physicsBody?.linearDamping = 1
+        border.physicsBody?.restitution = 0
+        
+        //border.physicsBody?.velocity = CGVector(dx: 0, dy: 150)
+    }
+    
+    addChild(border)
+}
+```
+
+<img src="Screenshots/SpriteKit - Edge Body.png" alt="SpriteKit - Edge Body" style="width:25%;" />
+
+Edge bodies are typically used to create physical boundaries and containers. The documentation says that they are static and that the physics engine doesn't move them. Indeed, applying a force, impulse, or torque won't move the node. However, if the velocity is set manually, the edge body does move! Uncomment this line in the function above:
+
+```swift
+border.physicsBody?.velocity = CGVector(dx: 0, dy: 150)
+```
+
+The border will move upwards continuously and will drag the yellow rectangles with it! It seems that the simulation *can* move an edge body. Setting `.velocity` or `.angularVelocity` moves the body kinematically. The body ignore damping properties, but still collides with volume bodies and applies restitution.
+
+I found out about this by applying an impulse PD controller on an edge body:
+
+```swift
+func applyPDImpulse(body: SKPhysicsBody, targetPosition: CGPoint, deltaTime: TimeInterval) {
+    guard let node = body.node else { return }
+
+    let mass = max(body.mass, 0.001)
+    let deltaTime = CGFloat(deltaTime)
+
+    let positionError = targetPosition - node.position
+    let velocityError = CGVector(dx: -body.velocity.dx, dy: -body.velocity.dy)
+
+    let proportional = stiffness * mass
+    let derivative = damping * mass
+
+    let force = CGVector(
+        dx: proportional * positionError.x + derivative * velocityError.dx,
+        dy: proportional * positionError.y + derivative * velocityError.dy
+    )
+
+    var desiredVelocityChange = CGVector(
+        dx: (force.dx / mass) * deltaTime,
+        dy: (force.dy / mass) * deltaTime
+    )
+
+    let magnitude = hypot(desiredVelocityChange.dx, desiredVelocityChange.dy)
+    let maxVelocityChange = (maxForce / mass) * deltaTime
+
+    if magnitude > maxVelocityChange {
+        let clamp = maxVelocityChange / max(magnitude, .leastNonzeroMagnitude)
+        desiredVelocityChange = desiredVelocityChange * clamp
+    }
+
+    body.velocity = CGVector(
+        dx: body.velocity.dx + desiredVelocityChange.dx,
+        dy: body.velocity.dy + desiredVelocityChange.dy
+    )
+}
+```
+
+This impulse PD controller is effectively a velocity setter. Applying it on the edge body will make it controllable within the physics simulation.
+
 ## SpriteKit Manual Camera
 
 *28 August 2025*
