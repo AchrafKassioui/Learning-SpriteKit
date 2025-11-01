@@ -1656,7 +1656,7 @@ While I was investigating something else using Xcode Memory Graph, I saw this:
 
 <img src="Screenshots/SpriteKit - The Joint Created by Physics.png" alt="SpriteKit - The Joint Created by Physics" style="zoom:50%;" />
 
-Notice the `_scenePinBody` reference. It looks like a pin joint is attached to the scene when SpriteKit is running physics!
+Notice the `_scenePinBody` reference. Is it the body against which other joints would collide? Is it the body used for the `physicsBody.pinned` property?
 
 ## SF Symbol
 
