@@ -1,5 +1,22 @@
 # Learning SpriteKit
 
+## Offline Rendering with SKRenderer
+
+*25 Nov 2025*
+
+I've made an [SKRenderer Demo App](https://github.com/AchrafKassioui/SKRenderer-Demo). If you want to get started with SKRenderer, here's an overview:
+
+SKRenderer takes a SpriteKit scene and outputs a metal texture. The texture can be used in a Metal pipeline:
+
+- A Metal-backed view can display the output texture on screen, calling update and render each frame in sync with the display refresh rate.
+- Views such as ARView can composite their own render texture with the one produced by SKRenderer. See ARView [RenderCallbacks](https://developer.apple.com/documentation/realitykit/arview/rendercallbacks-swift.struct) and [postProcess](https://developer.apple.com/documentation/realitykit/arview/rendercallbacks-swift.struct/postprocess).
+- SKRenderer can run offscreen, with no view attached. In this mode, the app itself drives the update/render loop and retrieves the texture. This demo uses that approach.
+
+What SKRenderer is not:
+
+- SKRenderer does not expose SKView internals such as its framebuffer. SKView and SKRenderer are separate rendering paths.
+- SKRenderer is not magic. It's a renderer that needs the scene to be updated and computed at regular intervals. RealityKit and SceneKit can integrate SpriteKit content via SKRenderer, but only if the SpriteKit scene can update and render within the available frame budget. In practice, SpriteKit is light enough for this to work well.
+
 ## Edge Physics Body
 
 *1 Nov 2025*
@@ -2238,7 +2255,7 @@ When working with SpriteKit, you'll quickly realize that SpriteKit doesn't tell 
 
 An interesting example I tested recently is a macOS app called [Euler VS Pro](https://www.eulervs.com). Euler Visual Synthesizer uses SpriteKit to visualize shapes...in 3D! The app itself is made with AppKit, SpriteKit is used as the renderer, and the 3D projections are taken care of inside the app's own logic, [using simd vector operations](https://discord.com/channels/1119028615733067808/1119028616844562463/1228520361285648465) on the CPU.
 
-## SpriteKit People
+## People
 
 *9 April 2024, updated 13 May 2024*
 
@@ -2248,6 +2265,7 @@ Below is a list of people from Apple who were involved with the development of S
 - [Nick Porcino](https://www.linkedin.com/in/nick-porcino-8b5438/): very interesting and likable in [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov), WWDC 2014. Other links: [Google Scholar](https://scholar.google.com/citations?user=_TDOVAQAAAAJ&hl=en), a [webpage](http://nickporcino.com)
 - [Jacques Gasselin de Richebourg](https://www.linkedin.com/in/jacques-gasselin-de-richebourg-3b8924108/)
 - [Norman Wang](https://www.linkedin.com/in/normanwang/), from [session 606](https://devstreaming-cdn.apple.com/videos/wwdc/2014/606xxql3qoibema/606/606_hd_whats_new_in_sprite_kit.mov), WWDC 2014.
+- [Ross Dexter](https://www.linkedin.com/in/rossrdexter/), Going Beyond SpriteKit
 
 ## View Properties
 
@@ -3553,6 +3571,13 @@ if myNode.frame.contains(touchLocation) {
 ---
 
 ## Various Code samples
+
+```swift
+/// Node count in the scene, including the scene itself
+private func countAllNodes(in node: SKNode) -> Int {
+    return 1 + node.children.reduce(0) { $0 + countAllNodes(in: $1) }
+}
+```
 
 ```swift
 func generateRandomArray() -> [CGFloat] {
