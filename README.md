@@ -3701,4 +3701,4 @@ Various SpriteKit related articles I read or opened at some point.
 
 ---
 
-This file started on 7 July 2023 as a collection of ready-to-use boilerplates called "SpriteKit Cheatsheet". In March 2024, it became a list of timestamped notes covering various SpriteKit-related topics.
+This file started on 7 July 2023 as a collection of ready-to-use boilerplates called "SpriteKit Cheatsheet". In March 2024, it became a list of notes covering various SpriteKit-related topics.
