@@ -1,5 +1,41 @@
 # Learning SpriteKit
 
+## SpriteKit & Box2D
+
+*4 Jun 2026*
+
+I integrated SpriteKit with Box2D version 3, and they work amazingly well together. I shared videos, code, and implementation notes on the project page: [SpriteKit Box2D](https://github.com/AchrafKassioui/SpriteKit-Box2D).
+
+## SpriteKit's Continued Support
+
+*15 May 20026*
+
+Posted [on the Apple Developer Forums](https://developer.apple.com/forums/thread/826562).
+
+> Hi,
+>
+> Can Apple provide some reassurance on the continued support for SpriteKit in the coming years?
+>
+> At WWDC 2025, Apple deprecated SceneKit, which would make any SpriteKit user and fan quite nervous. I'm aware Apple doesn't comment on future plans. However, committing to a specific framework for larger projects is a significant investment in time (and money). Developers need to know whether to continue investing in proprietary technology that could be deprecated at any time. Some reassurance regarding SpriteKit's future would go a long way.
+>
+> I have tried replacing SpriteKit with RealityKit. RealityKit is certainly interesting, but SpriteKit still has things going for it that no other Apple framework provides:
+>
+> - Live drawing of shapes, paths, text, video, and images across all Apple devices. RealityKit offers no procedural drawing API equivalent to shape nodes.
+> - Particles and physics fields are very easy and fun to play with.
+> - The rigid body engine has a good feel. By comparison, RealityKit sleeps too aggressively, and doesn't have spring joints.
+> - SpriteKit is lightweight and runs well on older devices.
+>
+> In an ideal world, I'd also love to see SpriteKit improved:
+>
+> - A deterministic multi-threaded physics engine
+> - Metal shader support
+> - Soft shadows for lights
+>
+> One can dream.
+>
+> Thank you!
+>
+
 ## Offline Rendering with SKRenderer
 
 *25 Nov 2025*
@@ -123,7 +159,7 @@ When SpriteKit came out, it didn't have SKCameraNode. SKCameraNode was a later a
 
 > [!NOTE]
 >
-> The SpriteKit programming guide is excellent. They say it's retired (mostly because code is in Objective-C), but it's very well written and full of insights.
+> The SpriteKit programming guide is excellent. They say it's retired, but it's very well written and full of insights.
 
 In my own setup with SpriteKit, I use the following arrangement to simulate a camera:
 
@@ -437,17 +473,6 @@ SpriteKit was made in the UIKit era. SpriteKit uses multiple patterns that UIKit
 
 Personally, I'd rather not use any UI framework at all, and just live in a 2D or 3D world with a scene graph, a physics engine, and an explicit update loop.
 
-## print
-
-*21 May 2025*
-
-- terminator
-- separator
-
-```swift
-print("\(self) DEINIT", terminator: "\n\n")
-```
-
 ## Touch Events Timing
 
 *8 May 2025*
@@ -642,9 +667,9 @@ addChild(sprite)
 sprite = SKSpriteNode(color: .yellow, size: CGSize(width: 100, height: 100))
 ```
 
-Will the sprite in the scene be blue or yellow?
+Will the sprite in the scene become yellow?
 
-Answer: it will be blue!
+Answer: it will stay blue!
 
 When the third line assigns a new sprite to the variable `sprite`, it doesn't change the sprite in the scene tree. It changes the *reference* (pointer) to that sprite. The reference `sprite` is now pointing to a new object. The blue sprite itself stays in the scene, in memory, and is managed independently from its old reference `sprite`.
 
@@ -683,7 +708,7 @@ body.collisionBitMask = // Categories this body should collide with
 body.fieldBitMask = // Categories of field nodes this body is affected by
 ```
 
-Bitwise operations are used in the `contactTestBitMask`, `collisionBitMask`, and `fieldBitMask` properties. For example:
+Bitwise operations can be used for these properties. For example:
 
 ```swift
 // Store some categories in a data structure
@@ -777,7 +802,7 @@ In SpriteKit, there are two independent groups of category bit masks, each allow
 - Physics bodies of type `SKPhysicsBody`, categorized by `physicsBody.categoryBitMask`.
 - Field nodes of type `SKFieldNode`, categorized by `field.categoryBitMask`.
 
-In addition to the 32 distinct values, there are two other useful values:
+In addition to the 32 distinct values, there are two other useful values, "all" and "none":
 
 ```swift
 // Interact with all bitmasks (0b11111111111111111111111111111111)
@@ -962,7 +987,7 @@ toggleMetalHUD(skView: view, enabled: true)
   ```
   won't update the physics body attached to the sprite. Only its texture would resize.
   
-- SpriteKit applies some processing to paths passed on polygon for SKPhysicsBody. For example, a rectangular path can be created with smooth corners using some of CGPath methods. Once the path is used to create a physics body, SpriteKit will segment the rounded corners into a few straight lines, most likely for performance reasons.
+- SpriteKit applies some processing to paths passed on polygon for SKPhysicsBody. For example, a rectangular path can be created with smooth corners using some of CGPath methods. Once the path is used to create a physics body, SpriteKit will segment the rounded corners into a few straight lines, likely for performance reasons.
 
 <p align="center">
 <img src="Screenshots/SpriteKit - Body from Path.jpeg" alt="SpriteKit - Body from Path" style="width:25%;" />
@@ -1844,7 +1869,7 @@ import SpriteKit
 
 *16 October 2024, updated 24 December 2024*
 
-Some sample codes to setup constraints in SpriteKit:
+Code samples to setup constraints in SpriteKit:
 
 ```swift
 /// Lock a node's position inside a specific frame
@@ -1969,7 +1994,7 @@ class SpriteKitObservationScene: SKScene {
 }
 ```
 
-Links:
+### Links
 
 - [Goodbye Combine, Hello Observation](https://infinum.com/blog/swiftui-observation/), *accessed 9 June 2024*
 
@@ -2067,11 +2092,11 @@ When physics bodies are children of the camera, and when the camera is zoomed in
 - Case 1: a box of size 60x60, child of the scene, not of the camera. There is a physics boundary around the box, that is of size 400x400. When the body falls under gravity, it works fine.
 - Case 2, the same box, but this time it is a child of the camera, and the physics boundary is a child of the camera as well. When the camera is zoomed out 10x, i.e. when its scale is 10, and the body falls under gravity, the box won't rest. It constantly vibrates at its point of contact with the bottom edge of the boundary.
 
-Links
+### Links
 
 - [This StackOveflow](https://stackoverflow.com/a/21417523/420176) post mentions a jiggling behavior with JBox2D when a zoom factor is involved.
 
-## Physics Joints
+## Referencing Physics Joints
 
 *17 May 2024*
 
@@ -2102,11 +2127,9 @@ if let joints = myBodyB.physicsBody?.joints {
 }
 ```
 
-We can't use that to modify the frequency or the damping of the spring. You can only read some properties like `joint.reactionForce` and `joint.reactionTorque`.
+We can't use that to modify the frequency or the damping of the spring. You can only read some properties like `joint.reactionForce` and `joint.reactionTorque`. In order to set properties on existing joints, you need to store references to them, typically during creation, then use the references to modify the specific values.
 
-I find that the only way to modify the joint properties is to store the spring joint in a global variable.
-
-Links:
+### Links
 
 - [iOS 14.4 headers](https://developer.limneos.net/?ios=14.4&framework=PhysicsKit.framework&header=PKPhysicsJointDistance.h)
 - Rob Mayoff on [Stack Overflow.](https://stackoverflow.com/a/32018784/420176)
@@ -2391,7 +2414,7 @@ The typos in the comments inside `SKConstraint` header file are pretty funny!
 - In [Shaping a Physics Body to Match a Node's Graphics](https://developer.apple.com/documentation/spritekit/skphysicsbody/shaping_a_physics_body_to_match_a_node_s_graphics), we read "a path-based polygon is the least efficient shape", but in WWDC 2014 [session 608](https://devstreaming-cdn.apple.com/videos/wwdc/2014/608xx0tzmkcqkrn/608/608_hd_best_practices_for_building_spritekit_games.mov) at 37:12, compound and texture-based physics bodies are marked as more costly.<img src="Screenshots/SpriteKit - PhysicsBody Shapes Cost.png" alt="SpriteKit - PhysicsBody Shapes Cost" />
 - [`particleAction`](https://developer.apple.com/documentation/spritekit/skemitternode/1397970-particleaction) does not work.
 
-## Core Graphics and SpriteKit
+## Core Graphics & SpriteKit
 
 *18 March 2024*
 
