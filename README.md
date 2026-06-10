@@ -1,5 +1,20 @@
 # Learning SpriteKit
 
+## Games Technologies Q&A
+
+*9 Jun 2026*
+
+For WWDC 2026, Apple held a [developer forum event](https://developer.apple.com/forums/activities/1573080?u_t=3) where Apple engineers answer questions about game technologies. I asked about [SpriteKit Continued Support](https://developer.apple.com/forums/thread/830810). This was Apple's answer:
+
+> We appreciate your passion for SpriteKit. I personally also really enjoy using the framework.
+>
+> At this time SpriteKit is not deprecated, and we encourage you to continue using it the way you have been, and using Feedback Assistant to share your enhancement requests and bug reports.
+>
+> Cheers 🍻
+> -Dave
+
+<img src="Screenshots/SpriteKit Continued Support Apple Answer.png" alt="SpriteKit Continued Support Apple Answer" style="width:100%;" />
+
 ## SpriteKit & Box2D
 
 *4 Jun 2026*
